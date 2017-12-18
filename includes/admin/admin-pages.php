@@ -95,7 +95,7 @@ function give_add_options_links() {
 	$give_add_ons_page = add_submenu_page(
 		'edit.php?post_type=give_forms',
 		esc_html__( 'Give Add-ons', 'give' ),
-		esc_html__( 'Add-ons', 'give' ),
+		'<span style="color:#7cc048">'. __( 'Add-ons', 'give' ) . '</span>',
 		'install_plugins',
 		'give-addons',
 		'give_add_ons_page'
