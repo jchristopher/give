@@ -27,12 +27,14 @@ function give_add_ons_page() {
 	<div class="wrap" id="give-add-ons">
 		<h1><?php echo get_admin_page_title(); ?>
 			&nbsp;&mdash;&nbsp;<a href="https://givewp.com/addons/" class="button-primary give-view-addons-all" target="_blank"><?php esc_html_e( 'View All Add-ons', 'give' ); ?>
-				<span class="dashicons dashicons-external"></span></a>
+				&nbsp;&mdash;&nbsp;<a href="https://givewp.local/plugin-login/?give_action=licensing_login&website=<?php echo get_bloginfo( 'url' ) ?>"
+				                      class="button givewp-login-button"><?php esc_html_e( 'Customer Login', 'give' ); ?></a>
 		</h1>
 
 		<hr class="wp-header-end">
 
 		<p><?php esc_html_e( 'The following Add-ons extend the functionality of Give.', 'give' ); ?></p>
+
 		<?php echo give_add_ons_get_feed(); ?>
 	</div>
 	<?php
