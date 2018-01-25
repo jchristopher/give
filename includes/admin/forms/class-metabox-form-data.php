@@ -259,15 +259,15 @@ class Give_MetaBox_Form_Data {
 							),
 							'wrapper_class' => 'give-hidden',
 						),
-							array(
-								'id'         => $prefix . 'checkout_label',
-								'name'       => __( 'Submit Button', 'give' ),
-								'desc'       => __( 'The button label for completing a donation.', 'give' ),
-								'type'       => 'text_small',
-								'attributes' => array(
-									'placeholder' => __( 'Donate Now', 'give' ),
-								),
+						array(
+							'id'         => $prefix . 'checkout_label',
+							'name'       => __( 'Submit Button', 'give' ),
+							'desc'       => __( 'The button label for completing a donation.', 'give' ),
+							'type'       => 'text_small',
+							'attributes' => array(
+								'placeholder' => __( 'Donate Now', 'give' ),
 							),
+						),
 						array(
 							'name' => __( 'Default Gateway', 'give' ),
 							'desc' => __( 'By default, the gateway for this form will inherit the global default gateway (set under Give > Settings > Payment Gateways). This option allows you to customize the default gateway for this form only.', 'give' ),
@@ -346,7 +346,7 @@ class Give_MetaBox_Form_Data {
 
 					array(
 						'name'        => __( 'Goal Format', 'give' ),
-						'description' => __( 'Do you want to display the total amount raised based on your monetary goal or a percentage? For instance, "$500 of $1,000 raised" or "50% funded".', 'give' ),
+						'description' => __( 'Do you want to display the total amount raised based on your monetary goal or a percentage? For instance, "$500 of $1,000 raised" or "50% funded" or "1 of 5 donations".', 'give' ),
 						'id'          => $prefix . 'goal_format',
 						'type'        => 'radio_inline',
 						'default'     => 'amount',
@@ -374,7 +374,11 @@ class Give_MetaBox_Form_Data {
 						'id'         => $prefix . 'number_of_donation_goal',
 						'name'       => __( 'Donation Goal', 'give' ),
 						'desc'       => __( 'Set total number of donations as a goal.', 'give' ),
-						'type'       => 'text_small',
+						'type'       => 'number',
+						'default'    => 1,
+						'attributes' => array(
+							'placeholder' => 1,
+						),
 					),
 
 					array(
@@ -685,34 +689,32 @@ class Give_MetaBox_Form_Data {
 				</ul>
 
 				<?php foreach ( $this->settings as $setting ) : ?>
-					<?php if ( ! $this->has_sub_tab( $setting ) ) : ?>
-						<?php do_action( "give_before_{$setting['id']}_settings" ); ?>
-						<?php
-						// Determine if current panel is active.
-						$is_active = $active_tab === $setting['id'] ? true : false;
-						?>
-						<div id="<?php echo $setting['id']; ?>" class="panel give_options_panel<?php echo( $is_active ? ' active' : '' ); ?>">
-							<?php if ( ! empty( $setting['fields'] ) ) : ?>
-								<?php foreach ( $setting['fields'] as $field ) : ?>
-									<?php give_render_field( $field ); ?>
-								<?php endforeach; ?>
-							<?php endif; ?>
-						</div>
+					<?php do_action( "give_before_{$setting['id']}_settings" ); ?>
+					<?php
+					// Determine if current panel is active.
+					$is_active = $active_tab === $setting['id'] ? true : false;
+					?>
+					<div id="<?php echo $setting['id']; ?>" class="panel give_options_panel<?php echo( $is_active ? ' active' : '' ); ?>">
+						<?php if ( ! empty( $setting['fields'] ) ) : ?>
+							<?php foreach ( $setting['fields'] as $field ) : ?>
+								<?php give_render_field( $field ); ?>
+							<?php endforeach; ?>
+						<?php endif; ?>
+					</div>
+					<?php do_action( "give_after_{$setting['id']}_settings" ); ?>
 
-						<?php do_action( "give_after_{$setting['id']}_settings" ); ?>
-					<?php else : ?>
-						<?php if ( $this->has_sub_tab( $setting ) ) : ?>
-							<?php if ( ! empty( $setting['sub-fields'] ) ) : ?>
-								<?php foreach ( $setting['sub-fields'] as $index => $sub_fields ) : ?>
-									<div id="<?php echo $sub_fields['id']; ?>" class="panel give_options_panel give-hidden">
-										<?php if ( ! empty( $sub_fields['fields'] ) ) : ?>
-											<?php foreach ( $sub_fields['fields'] as $sub_field ) : ?>
-												<?php give_render_field( $sub_field ); ?>
-											<?php endforeach; ?>
-										<?php endif; ?>
-									</div>
-								<?php endforeach; ?>
-							<?php endif; ?>
+
+					<?php if ( $this->has_sub_tab( $setting ) ) : ?>
+						<?php if ( ! empty( $setting['sub-fields'] ) ) : ?>
+							<?php foreach ( $setting['sub-fields'] as $index => $sub_fields ) : ?>
+								<div id="<?php echo $sub_fields['id']; ?>" class="panel give_options_panel give-hidden">
+									<?php if ( ! empty( $sub_fields['fields'] ) ) : ?>
+										<?php foreach ( $sub_fields['fields'] as $sub_field ) : ?>
+											<?php give_render_field( $sub_field ); ?>
+										<?php endforeach; ?>
+									<?php endif; ?>
+								</div>
+							<?php endforeach; ?>
 						<?php endif; ?>
 					<?php endif; ?>
 				<?php endforeach; ?>
@@ -974,10 +976,10 @@ class Give_MetaBox_Form_Data {
 		$meta_keys = array();
 
 		foreach ( $this->settings as $setting ) {
+			$meta_key = $this->get_fields_id( $setting );
+
 			if ( $this->has_sub_tab( $setting ) ) {
-				$meta_key = $this->get_sub_fields_id( $setting );
-			} else {
-				$meta_key = $this->get_fields_id( $setting );
+				$meta_key = array_merge( $meta_key, $this->get_sub_fields_id( $setting ) );
 			}
 
 			$meta_keys = array_merge( $meta_keys, $meta_key );

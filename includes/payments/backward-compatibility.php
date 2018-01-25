@@ -582,6 +582,10 @@ function _give_20_bc_support_deprecated_meta_key_query( $query ) {
 	) {
 		$meta_query = current( $query->query_vars['meta_query'] );
 
+		if ( empty( $meta_query[0]['key'] ) ) {
+			return;
+		}
+
 		if ( in_array( $meta_query[0]['key'], $new_meta_keys ) ) {
 			$meta_keys = $deprecated_meta_keys;
 		} elseif ( in_array( $meta_query[0]['key'], $deprecated_meta_keys ) ) {
@@ -698,4 +702,5 @@ function __give_20_bc_flush_cache( $check, $object_id ) {
 	return $check;
 }
 
-add_action( 'update_postmeta', '__give_20_bc_flush_cache', 9999, 2 );
+add_action( 'update_post_metadata', '__give_20_bc_flush_cache', 9999, 2 );
+add_action( 'add_post_metadata', '__give_20_bc_flush_cache', 9999, 2 );

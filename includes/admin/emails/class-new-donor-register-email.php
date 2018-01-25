@@ -33,8 +33,8 @@ if ( ! class_exists( 'Give_New_Donor_Register_Email' ) ) :
 		public function init() {
 			$this->load( array(
 				'id'                    => 'new-donor-register',
-				'label'                 => __( 'New Donor Register', 'give' ),
-				'description'           => __( 'New Donor Register Notification will be sent to recipient(s) when new donor registered.', 'give' ),
+				'label'                 => __( 'New User Registration', 'give' ),
+				'description'           => __( 'Sent to designated recipient(s) when a new user registers on the site via a donation form.', 'give' ),
 				'has_recipient_field'   => true,
 				'notification_status'   => 'enabled',
 				'has_preview_header'    => true,
@@ -45,7 +45,7 @@ if ( ! class_exists( 'Give_New_Donor_Register_Email' ) ) :
 					esc_attr__( '[%s] New User Registration', 'give' ),
 					get_bloginfo( 'name' )
 				),
-				'default_email_massage' => $this->get_default_email_message(),
+				'default_email_message' => $this->get_default_email_message(),
 			) );
 
 			// Setup action hook.
@@ -75,7 +75,7 @@ if ( ! class_exists( 'Give_New_Donor_Register_Email' ) ) :
 		function get_default_email_message() {
 			$message = esc_attr__( 'New user registration on your site {sitename}:', 'give' ) . "\r\n\r\n";
 			$message .= esc_attr__( 'Username: {username}', 'give' ) . "\r\n\r\n";
-			$message .= esc_attr__( 'E-mail: {user_email}', 'give' ) . "\r\n";
+			$message .= esc_attr__( 'Email: {user_email}', 'give' ) . "\r\n";
 
 			/**
 			 * Filter the default email message
@@ -87,6 +87,15 @@ if ( ! class_exists( 'Give_New_Donor_Register_Email' ) ) :
 				$message,
 				$this
 			);
+		}
+
+		/**
+		 * Setup email data
+		 *
+		 * @since 2.0
+		 */
+		public function setup_email_data() {
+			Give()->emails->__set( 'heading', esc_html__( 'New User Registration', 'give' ) );
 		}
 
 
@@ -102,6 +111,8 @@ if ( ! class_exists( 'Give_New_Donor_Register_Email' ) ) :
 		 * @return string
 		 */
 		public function setup_email_notification( $user_id, $user_data ) {
+			$this->setup_email_data();
+
 			$this->send_email_notification( array(
 				'user_id' => $user_id,
 			) );
@@ -147,17 +158,13 @@ if ( ! class_exists( 'Give_New_Donor_Register_Email' ) ) :
 				}
 			}
 
-			// Inline JS function for switching donations.
-			$request_url = $_SERVER['REQUEST_URI'];
+			$request_url_data = wp_parse_url( $_SERVER['REQUEST_URI'] );
+			$query            = $request_url_data['query'];
 
-			// Remove payment id query param if set from request url.
-			if ( $user_id ) {
-				$request_url_data = wp_parse_url( $request_url );
-				$query            = $request_url_data['query'];
-				$query            = str_replace( "&user_id={$user_id}", '', $query );
+			// Remove user id query param if set from request url.
+			$query = remove_query_arg( array( 'user_id' ), $query );
 
-				$request_url = home_url( '/?' . str_replace( '', '', $query ) );
-			}
+			$request_url = home_url( '/?' . str_replace( '', '', $query ) );
 			?>
 			<script type="text/javascript">
 				function change_preview() {

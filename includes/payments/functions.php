@@ -428,9 +428,9 @@ function give_count_payments( $args = array() ) {
 	}
 
 	// Extract all donations
-	$args['number']   = - 1;
-	$args['group_by'] = 'post_status';
-	$args['count']    = 'true';
+	$args['number']      = - 1;
+	$args['group_by']    = 'post_status';
+	$args['count']       = 'true';
 
 	$donations_obj   = new Give_Payments_Query( $args );
 	$donations_count = $donations_obj->get_payment_by_group();
@@ -1729,18 +1729,36 @@ function give_filter_where_older_than_week( $where = '' ) {
  *
  * Retrieves the form title and appends the level name if present.
  *
- * @param array  $payment_meta Payment meta data.
- * @param bool   $only_level   If set to true will only return the level name if multi-level enabled.
- * @param string $separator    The separator between the .
+ * @param int|Give_Payment $donation Donation Data Object.
+ * @param array            $args     a. only_level = If set to true will only return the level name if multi-level enabled.
+ *                                   b. separator  = The separator between the Form Title and the Donation Level.
  *
  * @since 1.5
  *
  * @return string $form_title Returns the full title if $only_level is false, otherwise returns the levels title.
  */
-function give_get_payment_form_title( $payment_meta, $only_level = false, $separator = '' ) {
-	$form_id     = isset( $payment_meta['form_id'] ) ? $payment_meta['form_id'] : 0;
-	$price_id    = isset( $payment_meta['price_id'] ) ? $payment_meta['price_id'] : null;
-	$form_title  = isset( $payment_meta['form_title'] ) ? $payment_meta['form_title'] : '';
+function give_get_donation_form_title( $donation, $args = array() ) {
+
+	if ( ! $donation instanceof Give_Payment ) {
+		$donation = new Give_Payment( $donation );
+	}
+
+	if( ! $donation->ID ) {
+		return '';
+	}
+
+	$defaults = array(
+		'only_level' => false,
+		'separator'  => '',
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	$form_id     = $donation->form_id;
+	$price_id    = $donation->price_id;
+	$form_title  = $donation->form_title;
+	$only_level  = $args['only_level'];
+	$separator   = $args['separator'];
 	$level_label = '';
 
 	$cache_key = Give_Cache::get_key(
@@ -1758,7 +1776,7 @@ function give_get_payment_form_title( $payment_meta, $only_level = false, $separ
 	$form_title_html = Give_Cache::get_db_query( $cache_key );
 
 	if ( is_null( $form_title_html ) ) {
-		if ( $only_level == true ) {
+		if ( true === $only_level ) {
 			$form_title = '';
 		}
 
@@ -1768,7 +1786,7 @@ function give_get_payment_form_title( $payment_meta, $only_level = false, $separ
 			$custom_amount_text = give_get_meta( $form_id, '_give_custom_amount_text', true );
 			$level_label        = ! empty( $custom_amount_text ) ? $custom_amount_text : __( 'Custom Amount', 'give' );
 		} elseif ( give_has_variable_prices( $form_id ) ) {
-			$level_label = give_get_price_option_name( $form_id, $price_id );
+			$level_label = give_get_price_option_name( $form_id, $price_id, $donation->ID, false );
 		}
 
 		// Only add separator if there is a form title.
@@ -1788,7 +1806,7 @@ function give_get_payment_form_title( $payment_meta, $only_level = false, $separ
 	 *
 	 * @since 1.0
 	 */
-	return apply_filters( 'give_get_payment_form_title', $form_title_html, $payment_meta );
+	return apply_filters( 'give_get_donation_form_title', $form_title_html, $donation->payment_meta, $donation );
 }
 
 /**
@@ -1829,7 +1847,15 @@ function give_get_price_id( $form_id, $price ) {
 	// Price ID must be numeric or string.
 	$price_id = ! is_numeric( $price_id ) && ! is_string( $price_id ) ? 0 : $price_id;
 
-	return $price_id;
+	/**
+	 * Filter the price id
+	 *
+	 * @since 2.0
+	 *
+	 * @param string $price_id
+	 * @param int    $form_id
+	 */
+	return apply_filters( 'give_get_price_id', $price_id, $form_id );
 }
 
 /**
@@ -1929,6 +1955,14 @@ function give_get_payment_meta_price_id( $payment_meta ) {
 		$price_id = give_get_price_id( $payment_meta['give_form_id'], $payment_meta['price'] );
 	}
 
-	return apply_filters( 'give_get_payment_meta_price_id', $price_id );
+	/**
+	 * Filter the price id
+	 *
+	 * @since 1.8.6
+	 *
+	 * @param string $price_id
+	 * @param array  $payment_meta
+	 */
+	return apply_filters( 'give_get_payment_meta_price_id', $price_id, $payment_meta );
 
 }

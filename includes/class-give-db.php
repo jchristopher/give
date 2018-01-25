@@ -34,6 +34,16 @@ abstract class Give_DB {
 	public $table_name;
 
 	/**
+	 * Set Minimum Index Length
+	 *
+	 * @since  2.0.1
+	 * @access public
+	 *
+	 * @var int
+	 */
+	public $min_index_length = 191;
+
+	/**
 	 * The version of our database table
 	 *
 	 * @since  1.0
@@ -347,7 +357,7 @@ abstract class Give_DB {
 	 *
 	 * @return bool
 	 */
-	public function is_column_exists( $column_name ) {
+	public function does_column_exist( $column_name ) {
 
 		global $wpdb;
 
@@ -356,7 +366,7 @@ abstract class Give_DB {
 			DB_NAME, $this->table_name, $column_name
 		) );
 
-		if ( ! empty( $column ) || get_option( 'give_version' ) ) {
+		if ( ! empty( $column ) ) {
 			return true;
 		}
 

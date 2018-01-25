@@ -155,7 +155,8 @@ function give_donor_tabs() {
  * @return void
  */
 function give_donors_list() {
-	include dirname( __FILE__ ) . '/class-donor-table.php';
+
+	include GIVE_PLUGIN_DIR . 'includes/admin/donors/class-donor-table.php';
 
 	$donors_table = new Give_Donor_List_Table();
 	$donors_table->prepare_items();
@@ -404,22 +405,23 @@ function give_donor_view( $donor ) {
 										<?php else: ?>
 											<span data-key="user_id"><?php _e( 'None', 'give' ); ?></span>
 										<?php endif; ?>
-									<?php if ( current_user_can( $donor_edit_role ) && intval( $donor->user_id ) > 0 ): ?>
-										<span class="disconnect-user">
- 											-
- 											<a id="disconnect-donor" href="#disconnect"
-										       aria-label="<?php _e( 'Disconnects the current user ID from this donor record.', 'give' ); ?>">
- 												<?php _e( 'Disconnect User', 'give' ); ?>
-											</a>
- 										</span>
-										<span class="view-user-profile">
- 											<a id="view-user-profile"
-										       href="<?php echo 'user-edit.php?user_id=' . $donor->user_id; ?>"
-										       aria-label="<?php _e( 'View User Profile of current user ID.', 'give' ); ?>">
- 												<?php _e( 'View User Profile', 'give' ); ?>
-											</a>
- 										</span>
-									<?php endif; ?>
+									<?php if ( current_user_can( $donor_edit_role ) && intval( $donor->user_id ) > 0 ):
+
+										echo sprintf(
+											'- <span class="disconnect-user">
+				                                            <a id="disconnect-donor" href="#disconnect" aria-label="%1$s">%2$s</a>
+				                                       </span>
+				                                       | <span class="view-user-profile">
+ 											                <a id="view-user-profile" href="%3$s" aria-label="%4$s">%5$s</a>
+ 										               </span>',
+											__( 'Disconnects the current user ID from this donor record.', 'give' ),
+											__( 'Disconnect User', 'give' ),
+											'user-edit.php?user_id=' . $donor->user_id,
+											__( 'View User Profile of current user ID.', 'give' ),
+											__( 'View User Profile', 'give' )
+										);
+
+										endif; ?>
 									</span>
 							</td>
 						</tr>
@@ -457,7 +459,7 @@ function give_donor_view( $donor ) {
 	<div id="donor-stats-wrapper" class="donor-section postbox clear">
 		<ul>
 			<li>
-				<a href="<?php echo admin_url( 'edit.php?post_type=give_forms&page=give-payment-history&donor=' . absint( $donor->id ) ); ?>">
+				<a href="<?php echo admin_url( 'edit.php?post_type=give_forms&page=give-payment-history&status=publish&donor=' . absint( $donor->id ) ); ?>">
 					<span class="dashicons dashicons-heart"></span>
 					<?php
 					// Completed Donations.
