@@ -87,6 +87,37 @@ function give_do_automatic_upgrades() {
 			}
 
 			$did_upgrade = true;
+
+		case version_compare( $give_version, '2.0.2', '<' ) :
+			// Remove 2.0.1 update to rerun on 2.0.2
+			$completed_upgrades = give_get_completed_upgrades();
+			$v201_updates = array(
+				'v201_upgrades_payment_metadata',
+				'v201_add_missing_donors',
+				'v201_move_metadata_into_new_table',
+				'v201_logs_upgrades'
+			);
+
+			foreach ( $v201_updates as $v201_update ) {
+				if( in_array( $v201_update, $completed_upgrades ) ) {
+					unset( $completed_upgrades[ array_search( $v201_update, $completed_upgrades )] );
+				}
+			}
+
+			update_option( 'give_completed_upgrades', $completed_upgrades );
+
+			// Do nothing on fresh install.
+			if( ! doing_action( 'give_upgrades' ) ) {
+				give_v201_create_tables();
+				Give_Updates::get_instance()->__health_background_update( Give_Updates::get_instance() );
+				Give_Updates::$background_updater->dispatch();
+			}
+
+			$did_upgrade = true;
+
+		case version_compare( $give_version, '2.0.3', '<' ) :
+			give_v203_upgrades();
+			$did_upgrade = true;
 	}
 
 	if ( $did_upgrade ) {
@@ -364,14 +395,6 @@ function give_v132_upgrade_give_payment_customer_id() {
 
 	/* @var Give_Updates $give_updates */
 	$give_updates = Give_Updates::get_instance();
-
-	if ( ! current_user_can( 'manage_give_settings' ) ) {
-		wp_die( esc_html__( 'You do not have permission to do Give upgrades.', 'give' ), esc_html__( 'Error', 'give' ), array(
-			'response' => 403,
-		) );
-	}
-
-	give_ignore_user_abort();
 
 	// UPDATE DB METAKEYS.
 	$sql   = "UPDATE $wpdb->postmeta SET meta_key = '_give_payment_customer_id' WHERE meta_key = '_give_payment_donor_id'";
@@ -2192,33 +2215,30 @@ function give_v201_create_tables(){
  * @return void
  */
 function give_v201_upgrades_payment_metadata_callback() {
-	global $wpdb;
+	global $wpdb, $post;
 	$give_updates = Give_Updates::get_instance();
+	give_v201_create_tables();
 
-	// form query
-	$forms = new WP_Query( array(
-			'paged'          => $give_updates->step,
-			'status'         => 'any',
-			'order'          => 'ASC',
-			'post_type'      => 'give_payment',
-			'posts_per_page' => 100,
-			'date_query' => array(
-				'after'    => array(
-					'year'  => 2018,
-					'month' => 1,
-					'day'   => 8,
-				),
-				'inclusive' => true,
+	$payments = $wpdb->get_col(
+		"
+			SELECT ID FROM $wpdb->posts
+			WHERE 1=1
+			AND ( 
+  				$wpdb->posts.post_date >= '2018-01-08 00:00:00'
 			)
-		)
+			AND $wpdb->posts.post_type = 'give_payment'
+			AND {$wpdb->posts}.post_status IN ('" . implode( "','", array_keys( give_get_payment_statuses() ) ) . "')
+			ORDER BY $wpdb->posts.post_date ASC 
+			LIMIT 100
+			OFFSET " . ( 1 === $give_updates->step ? 0 : ( $give_updates->step * 100 ) )
 	);
 
-	if ( $forms->have_posts() ) {
-		$give_updates->set_percentage( $forms->found_posts, ( $give_updates->step * 100 ) );
+	if ( ! empty( $payments ) ) {
+		$give_updates->set_percentage( give_get_total_post_type_count( 'give_payment' ), ( $give_updates->step * 100 ) );
 
-		while ( $forms->have_posts() ) {
-			$forms->the_post();
-			global $post;
+		foreach ( $payments as $payment_id ) {
+			$post = get_post( $payment_id );
+			setup_postdata( $post );
 
 			// Do not add new meta keys if already refactored.
 			if ( $wpdb->get_var( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id=%d AND meta_key=%s", $post->ID, '_give_payment_donor_id' ) ) ) {
@@ -2291,25 +2311,27 @@ function give_v201_upgrades_payment_metadata_callback() {
  * @return void
  */
 function give_v201_move_metadata_into_new_table_callback() {
-	global $wpdb;
+	global $wpdb, $post;
 	$give_updates = Give_Updates::get_instance();
+	give_v201_create_tables();
 
-	// form query
-	$payments = new WP_Query( array(
-			'paged'          => $give_updates->step,
-			'status'         => 'any',
-			'order'          => 'ASC',
-			'post_type'      => array( 'give_forms', 'give_payment' ),
-			'posts_per_page' => 100,
-		)
+	$payments = $wpdb->get_col(
+		"
+			SELECT ID FROM $wpdb->posts 
+			WHERE 1=1
+			AND ( $wpdb->posts.post_type = 'give_payment' OR $wpdb->posts.post_type = 'give_forms' )
+			AND {$wpdb->posts}.post_status IN ('" . implode( "','", array_keys( give_get_payment_statuses() ) ) . "')
+			ORDER BY $wpdb->posts.post_date ASC 
+			LIMIT 100
+			OFFSET " . ( 1 === $give_updates->step ? 0 : ( $give_updates->step * 100 ) )
 	);
 
-	if ( $payments->have_posts() ) {
-		$give_updates->set_percentage( $payments->found_posts, $give_updates->step * 100 );
+	if ( ! empty( $payments ) ) {
+		$give_updates->set_percentage( give_get_total_post_type_count( array( 'give_forms', 'give_payment' ) ), $give_updates->step * 100 );
 
-		while ( $payments->have_posts() ) {
-			$payments->the_post();
-			global $post;
+		foreach ( $payments as $payment_id ) {
+			$post = get_post( $payment_id );
+			setup_postdata( $post );
 
 			$meta_data = $wpdb->get_results(
 				$wpdb->prepare(
@@ -2368,25 +2390,27 @@ function give_v201_move_metadata_into_new_table_callback() {
  * @return void
  */
 function give_v201_logs_upgrades_callback() {
-	global $wpdb;
+	global $wpdb, $post;
 	$give_updates = Give_Updates::get_instance();
+	give_v201_create_tables();
 
-	// form query
-	$forms = new WP_Query( array(
-			'paged'          => $give_updates->step,
-			'order'          => 'DESC',
-			'post_type'      => 'give_log',
-			'post_status'    => 'any',
-			'posts_per_page' => 100,
-		)
+	$logs = $wpdb->get_col(
+		"
+			SELECT ID FROM $wpdb->posts 
+			WHERE 1=1
+			AND $wpdb->posts.post_type = 'give_log'
+			AND {$wpdb->posts}.post_status IN ('" . implode( "','", array_keys( give_get_payment_statuses() ) ) . "')
+			ORDER BY $wpdb->posts.post_date ASC 
+			LIMIT 100
+			OFFSET " . ( 1 === $give_updates->step ? 0 : ( $give_updates->step * 100 ) )
 	);
 
-	if ( $forms->have_posts() ) {
-		$give_updates->set_percentage( $forms->found_posts, $give_updates->step * 100 );
+	if ( ! empty( $logs ) ) {
+		$give_updates->set_percentage( give_get_total_post_type_count( 'give_log' ), $give_updates->step * 100 );
 
-		while ( $forms->have_posts() ) {
-			$forms->the_post();
-			global $post;
+		foreach ( $logs as $log_id ) {
+			$post = get_post( $log_id );
+			setup_postdata( $post );
 
 			if( $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}give_logs WHERE ID=%d", $post->ID ) ) ) {
 				continue;
@@ -2455,6 +2479,7 @@ function give_v201_logs_upgrades_callback() {
  */
 function give_v201_add_missing_donors_callback(){
 	global $wpdb;
+	give_v201_create_tables();
 
 	if ( $wpdb->query( $wpdb->prepare( "SHOW TABLES LIKE %s", "{$wpdb->prefix}give_customers" ) ) ) {
 		$customers  = wp_list_pluck( $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}give_customers" ), 'id' );
@@ -2559,4 +2584,26 @@ function give_v201_add_missing_donors_callback(){
 
 	Give_Updates::get_instance()->percentage = 100;
 	give_set_upgrade_complete('v201_add_missing_donors' );
+}
+
+
+/**
+ * Version 2.0.3 automatic updates
+ *
+ * @since 2.0.3
+ */
+function give_v203_upgrades(){
+	global $wpdb;
+
+	// Do not auto load option.
+	$wpdb->update( $wpdb->options, array( 'autoload' => 'no' ), array( 'option_name' => 'give_completed_upgrades' ) );
+
+	// Remove from cache.
+	$all_options = wp_load_alloptions();
+
+	if( isset( $all_options['give_completed_upgrades'] ) ) {
+		unset( $all_options['give_completed_upgrades'] );
+		wp_cache_set( 'alloptions', $all_options, 'options' );
+	}
+
 }

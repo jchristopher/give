@@ -153,11 +153,11 @@ class Give_Payment_History_Table extends WP_List_Table {
 	 * @return void
 	 */
 	public function advanced_filters() {
-		$start_date = isset( $_GET['start-date'] ) ? sanitize_text_field( $_GET['start-date'] ) : null;
-		$end_date   = isset( $_GET['end-date'] ) ? sanitize_text_field( $_GET['end-date'] ) : null;
-		$status     = isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) : '';
-		$donor      = isset( $_GET['donor'] ) ? sanitize_text_field( $_GET['donor'] ) : '';
-		$search     = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '';
+		$start_date = isset( $_GET['start-date'] ) ? give_clean( $_GET['start-date'] ) : null;
+		$end_date   = isset( $_GET['end-date'] ) ? give_clean( $_GET['end-date'] ) : null;
+		$status     = isset( $_GET['status'] ) ? give_clean( $_GET['status'] ) : '';
+		$donor      = isset( $_GET['donor'] ) ? absint( $_GET['donor'] ) : '';
+		$search     = isset( $_GET['s'] ) ? give_clean( $_GET['s'] ) : '';
 		$form_id    = ! empty( $_GET['form_id'] ) ? absint( $_GET['form_id'] ) : 0;
 		?>
 		<div id="give-payment-filters" class="give-filters">
@@ -200,11 +200,16 @@ class Give_Payment_History_Table extends WP_List_Table {
 			 * @since 1.8.18
 			 */
 			do_action( 'give_payment_table_advanced_filters' );
-			?>
 
-			<?php if ( ! empty( $status ) ) : ?>
-				<input type="hidden" name="status" value="<?php echo esc_attr( $status ); ?>"/>
-			<?php endif; ?>
+
+			if ( ! empty( $status ) ) {
+				echo sprintf( '<input type="hidden" name="status" value="%s"/>', esc_attr( $status ) );
+			}
+
+			if ( ! empty( $donor ) ) {
+				echo sprintf( '<input type="hidden" name="donor" value="%s"/>', absint( $donor ) );
+			}
+			?>
 
 			<div class="give-filter">
 				<?php submit_button( __( 'Apply', 'give' ), 'secondary', '', false ); ?>
@@ -619,7 +624,7 @@ class Give_Payment_History_Table extends WP_List_Table {
 	function get_payment_status( $payment ) {
 		$value = sprintf(
 			'<div class="give-donation-status status-%1$s"><span class="give-donation-status-icon"></span>&nbsp;%2$s</div>',
-			sanitize_title( give_get_payment_status( $payment, true ) ),
+			$payment->status,
 			give_get_payment_status( $payment, true )
 		);
 
