@@ -650,7 +650,7 @@ if ( ! class_exists( 'Give_Admin_Settings' ) ) :
 					case 'file' :
 					case 'media' :
 						$option_value = self::get_option( $option_name, $value['id'], $value['default'] );
-						$button_label = esc_html__( sprintf( 'Add or Upload %s', ( 'file' === $value['type'] ? 'File' : 'Image' ) ), 'give' );
+						$button_label = sprintf( __( 'Add or Upload %s', 'give' ), ( 'file' === $value['type'] ? __( 'File', 'give' ) : __( 'Image', 'give' ) ) );
 						$fvalue       = empty( $value['fvalue'] ) ? 'url' : $value['fvalue'];
 
 						$allow_media_preview_tags = array( 'jpg', 'jpeg', 'png', 'gif', 'ico' );
@@ -705,20 +705,6 @@ if ( ! class_exists( 'Give_Admin_Settings' ) ) :
 						</tr><?php
 						break;
 
-					// Custom: System setting field.
-					case 'system_info' :
-						?>
-					<tr valign="top" <?php echo ! empty( $value['wrapper_class'] ) ? 'class="' . $value['wrapper_class'] . '"' : '' ?>>
-						<th scope="row" class="titledesc">
-							<label for="<?php echo esc_attr( $value['id'] ); ?>"><?php echo self::get_field_title( $value ); ?></label>
-						</th>
-						<td class="give-forminp">
-							<?php give_system_info_callback(); ?>
-							<?php echo $description; ?>
-						</td>
-						</tr><?php
-						break;
-
 					// Custom: Default gateways setting field.
 					case 'default_gateway' :
 						$option_value = self::get_option( $option_name, $value['id'], $value['default'] );
@@ -729,21 +715,6 @@ if ( ! class_exists( 'Give_Admin_Settings' ) ) :
 						</th>
 						<td class="give-forminp">
 							<?php give_default_gateway_callback( $value, $option_value ); ?>
-							<?php echo $description; ?>
-						</td>
-						</tr><?php
-						break;
-
-					// Custom: Enable gateways setting field.
-					case 'enabled_gateways' :
-						$option_value = self::get_option( $option_name, $value['id'], $value['default'] );
-						?>
-					<tr valign="top" <?php echo ! empty( $value['wrapper_class'] ) ? 'class="' . $value['wrapper_class'] . '"' : '' ?>>
-						<th scope="row" class="titledesc">
-							<label for="<?php echo esc_attr( $value['id'] ); ?>"><?php echo self::get_field_title( $value ); ?></label>
-						</th>
-						<td class="give-forminp">
-							<?php give_enabled_gateways_callback( $value, $option_value ); ?>
 							<?php echo $description; ?>
 						</td>
 						</tr><?php

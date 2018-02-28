@@ -1361,7 +1361,11 @@ function give_payment_mode_select( $form_id ) {
 				/**
 				 * Loop through the active payment gateways.
 				 */
-				$selected_gateway  = give_get_chosen_gateway( $form_id );
+				$selected_gateway = give_get_chosen_gateway( $form_id );
+				$give_settings    = give_get_settings();
+				$gateways_label   = array_key_exists( 'gateways_label', $give_settings ) ?
+					$give_settings['gateways_label'] :
+					array();
 
 				foreach ( $gateways as $gateway_id => $gateway ) :
 					//Determine the default gateway.
@@ -1371,9 +1375,16 @@ function give_payment_mode_select( $form_id ) {
 						<input type="radio" name="payment-mode" class="give-gateway"
 							   id="give-gateway-<?php echo esc_attr( $gateway_id ) . '-' . $form_id; ?>"
 							   value="<?php echo esc_attr( $gateway_id ); ?>"<?php echo $checked; ?>>
+
+						<?php
+						$label = $gateway['checkout_label'];
+						if ( ! empty( $gateways_label[ $gateway_id  ] ) ) {
+							$label = $gateways_label[ $gateway_id ];
+						}
+						?>
 						<label for="give-gateway-<?php echo esc_attr( $gateway_id ) . '-' . $form_id; ?>"
 							   class="give-gateway-option"
-							   id="give-gateway-option-<?php echo esc_attr( $gateway_id ); ?>"> <?php echo esc_html( $gateway['checkout_label'] ); ?></label>
+							   id="give-gateway-option-<?php echo esc_attr( $gateway_id ); ?>"> <?php echo esc_html( $label ); ?></label>
 					</li>
 					<?php
 				endforeach;
@@ -1641,6 +1652,32 @@ function give_show_goal_progress( $form_id, $args ) {
 
 add_action( 'give_pre_form', 'give_show_goal_progress', 10, 2 );
 
+/**
+ * Show Give Totals Progress.
+ *
+ * @since  2.1
+ *
+ * @param  int $total      Total amount based on shortcode parameter.
+ * @param  int $total_goal Total Goal amount passed by Admin.
+ *
+ * @return mixed
+ */
+function give_show_goal_totals_progress( $total, $total_goal ) {
+
+	// Bail out if total goal is set as an array.
+	if ( isset( $total_goal ) && is_array( $total_goal ) ) {
+		return false;
+	}
+
+	ob_start();
+	give_get_template( 'shortcode-totals-progress', array( 'total' => $total, 'total_goal' => $total_goal ) );
+
+	echo apply_filters( 'give_total_progress_output', ob_get_clean() );
+
+	return true;
+}
+
+add_action( 'give_pre_form', 'give_show_goal_totals_progress', 10, 2 );
 
 /**
  * Get form content position.
@@ -1869,6 +1906,8 @@ function __give_form_add_donation_hidden_field( $form_id, $args, $form ) {
 	<input type="hidden" name="give-form-url" value="<?php echo htmlspecialchars( give_get_current_page_url() ); ?>"/>
 	<input type="hidden" name="give-form-minimum"
 		   value="<?php echo give_format_amount( give_get_form_minimum_price( $form_id ), array( 'sanitize' => false ) ); ?>"/>
+	<input type="hidden" name="give-form-maximum"
+	       value="<?php echo give_format_amount( give_get_form_maximum_price( $form_id ), array( 'sanitize' => false ) ); ?>"/>
 	<?php
 
 	// WP nonce field.
