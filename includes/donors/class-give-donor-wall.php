@@ -239,11 +239,20 @@ class Give_Donor_Wall {
 	public function get_donor_query_atts( $atts ) {
 		// Set default form query args.
 		$donor_args = array(
-			'number'  => $atts['donors_per_page'],
-			'paged'   => $atts['paged'],
-			'orderby' => $atts['orderby'],
-			'order'   => $atts['order'],
+			'number'     => $atts['donors_per_page'],
+			'paged'      => $atts['paged'],
+			'orderby'    => $atts['orderby'],
+			'order'      => $atts['order']
 		);
+
+		if ( give_has_upgrade_completed( 'v224_update_donor_meta_forms_id' ) ) {
+			// Hide anonymous donor.
+			$donor_args['meta_query'][] = array(
+				'key'     => '_give_anonymous_donor',
+				'value'   => '1',
+				'compare' => '!=',
+			);
+		}
 
 		// Hide donors with zero donation amount.
 		if ( $atts['hide_empty'] ) {
@@ -256,6 +265,16 @@ class Give_Donor_Wall {
 		// Show donor who donated to specific form.
 		if ( $atts['form_id'] ) {
 			$donor_args['give_forms'] = $atts['form_id'];
+
+			if( give_has_upgrade_completed('v224_update_donor_meta_forms_id') ) {
+				$donor_args['meta_query']['relation'] = 'AND';
+				$donor_args['meta_query'][] = array(
+					array(
+						'key'   => "_give_anonymous_donor_form_{$atts['form_id']}",
+						'value' => '0',
+					),
+				);
+			}
 		}
 
 		// Show donor by id.
@@ -282,7 +301,11 @@ class Give_Donor_Wall {
 		// Set payment query.
 		// @codingStandardsIgnoreStart
 		if ( true === $atts['only_comments'] ) {
-			$donor_args['meta_query'] = array(
+			if( ! array_key_exists( 'relation', $donor_args['meta_query'] ) ) {
+				$donor_args['meta_query']['relation'] = 'AND';
+			}
+
+			$donor_args['meta_query'][] = array(
 				array(
 					'key'   => '_give_has_comment',
 					'value' => '1',
