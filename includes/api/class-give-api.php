@@ -329,12 +329,13 @@ class Give_API {
 	 * @return bool
 	 */
 	private function validate_request() {
+		/* @var WP_Query $wp_query*/
 		global $wp_query;
 
 		$this->override = false;
 
 		// Make sure we have both user and api key
-		if ( ! empty( $wp_query->query_vars['give-api'] ) && ( $wp_query->query_vars['give-api'] !== 'forms' || ! empty( $wp_query->query_vars['token'] ) ) ) {
+		if ( ! empty( $wp_query->query_vars['give-api'] ) && ( ! $this->is_public_query() || ! empty( $wp_query->query_vars['token'] ) ) ) {
 
 			if ( empty( $wp_query->query_vars['token'] ) || empty( $wp_query->query_vars['key'] ) ) {
 				$this->missing_auth();
@@ -364,10 +365,29 @@ class Give_API {
 				}
 
 			}
-		} elseif ( ! empty( $wp_query->query_vars['give-api'] ) && $wp_query->query_vars['give-api'] === 'forms' ) {
+		} elseif ( ! empty( $wp_query->query_vars['give-api'] ) && $this->is_public_query() ) {
 			$this->is_valid_request = true;
 			$wp_query->set( 'key', 'public' );
 		}
+	}
+
+
+	/**
+	 * Return whether this is a public query.
+	 *
+	 * @access private
+	 * @global object $wp_query WordPress Query
+	 * @since 2.6
+	 * @return boolean
+	 */
+	private function is_public_query() {
+		global $wp_query;
+
+		$public_modes = apply_filters( 'give_api_public_query_modes', array(
+			'forms', 'stats-updater'
+		) );
+
+		return in_array( $wp_query->query_vars['give-api'], $public_modes );
 	}
 
 	/**
@@ -615,6 +635,9 @@ class Give_API {
 
 				break;
 
+			case 'stats-updater':
+				Give_Stats::update_stats();
+
 		endswitch;
 
 		// Allow extensions to setup their own return data
@@ -660,6 +683,7 @@ class Give_API {
 			'forms',
 			'donors',
 			'donations',
+			'stats-updater'
 		) );
 
 		$query = isset( $wp_query->query_vars['give-api'] ) ? $wp_query->query_vars['give-api'] : null;
