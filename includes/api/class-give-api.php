@@ -129,6 +129,15 @@ class Give_API {
 	 */
 	private $routes;
 
+
+	/**
+	 * collection of updaters
+	 *
+	 * @since 2.3.0
+	 * @var array
+	 */
+	public $updaters = array();
+
 	/**
 	 * Setup the Give API
 	 *
@@ -166,6 +175,19 @@ class Give_API {
 		// Setup Give_Payment_Stats instance
 		$this->stats = new Give_Payment_Stats();
 
+		$this->load_updaters();
+	}
+
+
+	/**
+	 * Handle updater file loading.
+	 *
+	 * @since  2.3.0
+	 * @access private
+	 */
+	private function load_updaters() {
+		// Load stat background updater.
+		$this->updaters['stats'] = require_once GIVE_PLUGIN_DIR . 'includes/payments/class-give-stats-background-updater.php';
 	}
 
 	/**
@@ -329,7 +351,7 @@ class Give_API {
 	 * @return bool
 	 */
 	private function validate_request() {
-		/* @var WP_Query $wp_query*/
+		/* @var WP_Query $wp_query */
 		global $wp_query;
 
 		$this->override = false;
@@ -377,14 +399,15 @@ class Give_API {
 	 *
 	 * @access private
 	 * @global object $wp_query WordPress Query
-	 * @since 2.6
+	 * @since  2.6
 	 * @return boolean
 	 */
 	private function is_public_query() {
 		global $wp_query;
 
 		$public_modes = apply_filters( 'give_api_public_query_modes', array(
-			'forms', 'stats-updater'
+			'forms',
+			'stats-updater',
 		) );
 
 		return in_array( $wp_query->query_vars['give-api'], $public_modes );
@@ -684,7 +707,7 @@ class Give_API {
 			'forms',
 			'donors',
 			'donations',
-			'stats-updater'
+			'stats-updater',
 		) );
 
 		$query = isset( $wp_query->query_vars['give-api'] ) ? $wp_query->query_vars['give-api'] : null;
@@ -926,7 +949,7 @@ class Give_API {
 	 * @since  1.1
 	 * @global WPDB $wpdb  Used to query the database using the WordPress Database API.
 	 *
-	 * @param int $donor Donor ID.
+	 * @param int   $donor Donor ID.
 	 *
 	 * @return array $donors Multidimensional array of the donors.
 	 */
@@ -1008,7 +1031,7 @@ class Give_API {
 		} elseif ( $donor ) {
 
 			$error['error'] = sprintf(
-				/* translators: %s: donor */
+			/* translators: %s: donor */
 				__( 'Donor %s not found.', 'give' ),
 				$donor
 			);
@@ -1427,13 +1450,13 @@ class Give_API {
 					$form_info               = get_post( $args['form'] );
 					$earnings['earnings'][0] = array(
 						$form_info->post_name => $this->stats->get_earnings(
-								$args['form'],
-								is_numeric( $args['startdate'] )
-									? strtotime( $args['startdate'] )
-									: $args['startdate'],
-								is_numeric( $args['enddate'] )
-									? strtotime( $args['enddate'] )
-									: $args['enddate']
+							$args['form'],
+							is_numeric( $args['startdate'] )
+								? strtotime( $args['startdate'] )
+								: $args['startdate'],
+							is_numeric( $args['enddate'] )
+								? strtotime( $args['enddate'] )
+								: $args['enddate']
 						),
 					);
 				} else {
@@ -1614,7 +1637,7 @@ class Give_API {
 					}
 				}
 
-				if( ! empty( $payment_meta ) ) {
+				if ( ! empty( $payment_meta ) ) {
 					// Add custom meta to API
 					foreach ( $payment_meta as $meta_key => $meta_value ) {
 
@@ -1670,9 +1693,9 @@ class Give_API {
 	 * @access private
 	 * @since  1.1
 	 *
-	 * @global WP_Query     $wp_query
+	 * @global WP_Query $wp_query
 	 *
-	 * @param array         $data
+	 * @param array     $data
 	 *
 	 * @return void
 	 */
@@ -1830,36 +1853,36 @@ class Give_API {
 			?>
 			<table class="form-table">
 				<tbody>
-				<tr>
-					<th>
-						<?php _e( 'Give API Keys', 'give' ); ?>
-					</th>
-					<td>
-						<?php
-						$public_key = $this->get_user_public_key( $user->ID );
-						$secret_key = $this->get_user_secret_key( $user->ID );
-						?>
-						<?php if ( empty( $user->give_user_public_key ) ) { ?>
-							<input name="give_set_api_key" type="checkbox" id="give_set_api_key" />
-							<span class="description"><?php _e( 'Generate API Key', 'give' ); ?></span>
-						<?php } else { ?>
-							<strong style="display:inline-block; width: 125px;"><?php _e( 'Public key:', 'give' ); ?>
-								&nbsp;</strong>
-							<input type="text" disabled="disabled" class="regular-text" id="publickey" value="<?php echo esc_attr( $public_key ); ?>" />
-							<br />
-							<strong style="display:inline-block; width: 125px;"><?php _e( 'Secret key:', 'give' ); ?>
-								&nbsp;</strong>
-							<input type="text" disabled="disabled" class="regular-text" id="privatekey" value="<?php echo esc_attr( $secret_key ); ?>" />
-							<br />
-							<strong style="display:inline-block; width: 125px;"><?php _e( 'Token:', 'give' ); ?>
-								&nbsp;</strong>
-							<input type="text" disabled="disabled" class="regular-text" id="token" value="<?php echo esc_attr( $this->get_token( $user->ID ) ); ?>" />
-							<br />
-							<input name="give_revoke_api_key" type="checkbox" id="give_revoke_api_key" />
-							<span class="description"><label for="give_revoke_api_key"><?php _e( 'Revoke API Keys', 'give' ); ?></label></span>
-						<?php } ?>
-					</td>
-				</tr>
+					<tr>
+						<th>
+							<?php _e( 'Give API Keys', 'give' ); ?>
+						</th>
+						<td>
+							<?php
+							$public_key = $this->get_user_public_key( $user->ID );
+							$secret_key = $this->get_user_secret_key( $user->ID );
+							?>
+							<?php if ( empty( $user->give_user_public_key ) ) { ?>
+								<input name="give_set_api_key" type="checkbox" id="give_set_api_key"/>
+								<span class="description"><?php _e( 'Generate API Key', 'give' ); ?></span>
+							<?php } else { ?>
+								<strong style="display:inline-block; width: 125px;"><?php _e( 'Public key:', 'give' ); ?>
+									&nbsp;</strong>
+								<input type="text" disabled="disabled" class="regular-text" id="publickey" value="<?php echo esc_attr( $public_key ); ?>"/>
+								<br/>
+								<strong style="display:inline-block; width: 125px;"><?php _e( 'Secret key:', 'give' ); ?>
+									&nbsp;</strong>
+								<input type="text" disabled="disabled" class="regular-text" id="privatekey" value="<?php echo esc_attr( $secret_key ); ?>"/>
+								<br/>
+								<strong style="display:inline-block; width: 125px;"><?php _e( 'Token:', 'give' ); ?>
+									&nbsp;</strong>
+								<input type="text" disabled="disabled" class="regular-text" id="token" value="<?php echo esc_attr( $this->get_token( $user->ID ) ); ?>"/>
+								<br/>
+								<input name="give_revoke_api_key" type="checkbox" id="give_revoke_api_key"/>
+								<span class="description"><label for="give_revoke_api_key"><?php _e( 'Revoke API Keys', 'give' ); ?></label></span>
+							<?php } ?>
+						</td>
+					</tr>
 				</tbody>
 			</table>
 		<?php }// End if().
@@ -1965,9 +1988,9 @@ class Give_API {
 		$new_public_key = '';
 		$new_secret_key = '';
 
-		if( ! empty( $_POST['from'] ) && 'profile' === $_POST['from'] ) {
+		if ( ! empty( $_POST['from'] ) && 'profile' === $_POST['from'] ) {
 			// For User Profile Page.
-			if( ! empty( $_POST['give_set_api_key'] ) ) {
+			if ( ! empty( $_POST['give_set_api_key'] ) ) {
 				// Generate API Key from User Profile page.
 				$new_public_key = $this->generate_public_key( $user->user_email );
 				$new_secret_key = $this->generate_private_key( $user->ID );

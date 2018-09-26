@@ -124,4 +124,4 @@ class Give_Stats_Background_Updater extends WP_Background_Process {
 	}
 }
 
-new Give_Stats_Background_Updater();
+return new Give_Stats_Background_Updater();

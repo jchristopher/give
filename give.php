@@ -550,7 +550,6 @@ if ( ! class_exists( 'Give' ) ) :
 			require_once GIVE_PLUGIN_DIR . 'includes/payments/class-payments-query.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/payments/class-give-payment.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/payments/class-give-sequential-donation-number.php';
-			require_once GIVE_PLUGIN_DIR . 'includes/payments/class-give-stats-background-updater.php';
 
 			require_once GIVE_PLUGIN_DIR . 'includes/gateways/functions.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/gateways/actions.php';
