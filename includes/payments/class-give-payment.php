@@ -991,6 +991,7 @@ final class Give_Payment {
 				$donor = new Give_Donor( $this->customer_id );
 
 				$total_change = $total_increase - $total_decrease;
+
 				if ( $total_change < 0 ) {
 
 					$total_change = - ( $total_change );
@@ -1001,6 +1002,13 @@ final class Give_Payment {
 
 					$donor->decrease_donation_count();
 
+					Give_Donor_Stats::dispatch( array(
+						'donor'         => $donor->id,
+						'donation'      => $this->ID,
+						'amount_change' => $total_change,
+						'hash'          => $this->key,
+					) );
+
 				} elseif ( $total_change > 0 ) {
 
 					// Increase the donor's donation stats.
@@ -1009,6 +1017,12 @@ final class Give_Payment {
 
 					$donor->increase_purchase_count();
 
+					Give_Donor_Stats::dispatch( array(
+						'donor'         => $donor->id,
+						'donation'      => $this->ID,
+						'amount_change' => $total_change,
+						'hash'          => $this->key,
+					) );
 				}
 
 				// Verify and update form meta based on the form status.

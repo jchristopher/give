@@ -203,6 +203,13 @@ function give_update_payment_details( $data ) {
 
 			// Increase form earnings.
 			give_increase_earnings( $payment->form_id, $difference, $payment->ID );
+
+			Give_Donor_Stats::dispatch( array(
+				'donor'         => $payment->donor_id,
+				'donation'      => $payment->ID,
+				'amount_change' => $difference,
+				'hash'          => $payment->key,
+			) );
 		} elseif ( $curr_total > $new_total ) {
 			// Decrease if our new total is lower.
 			$difference = $curr_total - $new_total;
@@ -210,6 +217,13 @@ function give_update_payment_details( $data ) {
 
 			// Decrease form earnings.
 			give_decrease_form_earnings( $payment->form_id, $difference, $payment->ID );
+
+			Give_Donor_Stats::dispatch( array(
+				'donor'         => $payment->donor_id,
+				'donation'      => $payment->ID,
+				'amount_change' => - $difference,
+				'hash'          => $payment->key,
+			) );
 		}
 	}
 

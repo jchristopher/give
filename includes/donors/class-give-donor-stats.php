@@ -122,15 +122,30 @@ class Give_Donor_Stats {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param array $args {
-	 * @type int $donor Donor ID.
-	 * @type int $donation Donation ID.
+	 * @param array $args     {
+	 *
+	 * @type int    $donor    Donor ID.
+	 * @type int    $donation Donation ID.
 	 * @type string hash Unique string to validate request.
 	 * }
 	 */
 	public static function dispatch( $args ) {
+		$args['type'] = 'donor';
 		Give()->api->updaters['stats']->push_to_queue( $args )
-									  ->save()
-									  ->dispatch();
+		                              ->save()
+		                              ->dispatch();
+	}
+
+
+	/**
+	 * Update donor related stat on baisc of donation
+	 *
+	 * @since  2.3.0
+	 * @access public
+	 *
+	 * @param array $args
+	 */
+	public static function update( $args ) {
+		error_log( print_r( $args, true ) . "\n", 3, WP_CONTENT_DIR . '/debug_new.log' );
 	}
 }

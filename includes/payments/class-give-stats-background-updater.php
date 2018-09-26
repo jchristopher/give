@@ -67,38 +67,23 @@ class Give_Stats_Background_Updater extends WP_Background_Process {
 	protected function get_query_args() {
 		return array(
 			'give-action' => $this->identifier,
-			'nonce'  => wp_create_nonce( $this->identifier ),
+			'nonce'       => wp_create_nonce( $this->identifier ),
 		);
 	}
 
 	/**
-	 * Maybe process queue
+	 * Get post args
 	 *
-	 * Checks whether data exists within the queue and that
-	 * the process is not already running.
+	 * @return array
 	 */
-	public function maybe_handle() {
-		// Don't lock up other requests while processing
-		session_write_close();
-
-		if ( $this->is_process_running() ) {
-			// Background process already running.
-			// Create another batch to process in future
-			// @todo: create new batch if cron running already.
-
-			wp_die();
-		}
-
-		if ( $this->is_queue_empty() ) {
-			// No data to process.
-			wp_die();
-		}
-
-		check_ajax_referer( $this->identifier, 'nonce' );
-
-		$this->handle();
-
-		wp_die();
+	protected function get_post_args() {
+		return array(
+			'timeout'   => 0.01,
+			'blocking'  => false,
+			// 'body'      => $this->data,  Do not add batch data to post request.
+			'cookies'   => $_COOKIE,
+			'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
+		);
 	}
 
 	/**
@@ -112,13 +97,14 @@ class Give_Stats_Background_Updater extends WP_Background_Process {
 	 * @return array|bool
 	 */
 	protected function task( $item ) {
-		// switch ( $item['type'] ) {
-		// 	case 'donor':
-		// 		break;
-		//
-		// 	case 'form':
-		// 		break;
-		// }
+		switch ( $item['type'] ) {
+			case 'donor':
+				Give_Donor_Stats::update($item);
+				break;
+
+			case 'form':
+				break;
+		}
 
 		return false;
 	}
