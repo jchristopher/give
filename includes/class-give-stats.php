@@ -538,17 +538,4 @@ class Give_Stats {
 
 		return $where;
 	}
-
-
-	/**
-	 * Start stat updater
-	 *
-	 * @since  2.3
-	 * @access public
-	 */
-	public static function update_stats() {
-		$updater = new Give_Stats_Background_Updater();
-
-		$updater->dispatch();
-	}
 }
