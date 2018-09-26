@@ -636,7 +636,8 @@ class Give_API {
 				break;
 
 			case 'stats-updater':
-				Give_Stats::update_stats();
+				// Nothing to do here.
+				break;
 
 		endswitch;
 
