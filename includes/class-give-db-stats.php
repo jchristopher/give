@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0
  */
 class Give_DB_Stats extends Give_DB {
+	private $stats;
 
 	/**
 	 * Give_DB_Stats constructor.
@@ -38,6 +39,8 @@ class Give_DB_Stats extends Give_DB {
 		$wpdb->give_stats  = $this->table_name = "{$wpdb->prefix}give_stats";
 		$this->primary_key = 'id';
 		$this->version     = '1.0';
+
+		$this->stats = new Give_Stats();
 
 		// Install table.
 		$this->register_table();
@@ -106,5 +109,69 @@ class Give_DB_Stats extends Give_DB {
 		dbDelta( $sql );
 
 		update_option( $this->table_name . '_db_version', $this->version, false );
+	}
+
+	/**
+	 * Get earnings
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param array $args
+	 *
+	 * @return string Sanitize amount
+	 */
+	public function get_earnings( $args ) {
+		global $wpdb;
+
+		// Setup date from date string.
+		if ( is_string( $args['date'] ) ) {
+			$this->stats->setup_dates( $args['date'] );
+		}
+
+		$sql = $wpdb->prepare(
+			"
+			SELECT sum(amount) from {$this->table_name}
+			WHERE date > %s
+			AND date < %s
+			",
+			date( 'Y-m-d H:i:s', $this->stats->start_date ),
+			date( 'Y-m-d H:i:s', $this->stats->end_date )
+		);
+
+		$amount = $wpdb->get_var( $sql );
+
+		return $amount;
+	}
+
+	/**
+	 * Get earnings
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param array $args
+	 *
+	 * @return string Sanitize amount
+	 */
+	public function get_sales( $args ) {
+		global $wpdb;
+
+		// Setup date from date string.
+		if ( is_string( $args['date'] ) ) {
+			$this->stats->setup_dates( $args['date'] );
+		}
+
+		$sql = $wpdb->prepare(
+			"
+			SELECT COUNT(id) from {$this->table_name}
+			WHERE date > %s
+			AND date < %s
+			",
+			date( 'Y-m-d H:i:s', $this->stats->start_date ),
+			date( 'Y-m-d H:i:s', $this->stats->end_date )
+		);
+
+		$amount = $wpdb->get_var( $sql );
+
+		return $amount;
 	}
 }
