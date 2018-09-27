@@ -876,7 +876,7 @@ function give_v18_upgrades_form_metadata() {
 	$forms = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => 'give_forms',
 			'posts_per_page' => 20,
@@ -1113,7 +1113,7 @@ function give_v189_upgrades_levels_post_meta_callback() {
 	$donation_forms = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => 'give_forms',
 			'posts_per_page' => 20,
@@ -1349,7 +1349,7 @@ function give_v1812_update_amount_values_callback() {
 	$donation_forms = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => array( 'give_forms', 'give_payment' ),
 			'posts_per_page' => 20,
@@ -1541,7 +1541,7 @@ function give_v1817_update_donation_iranian_currency_code() {
 	$payments = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => array( 'give_payment' ),
 			'posts_per_page' => 100,
@@ -1674,7 +1674,7 @@ function give_v1818_assign_custom_amount_set_donation() {
 	$donations = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => array( 'give_payment' ),
 			'posts_per_page' => 100,
@@ -1775,7 +1775,7 @@ function give_v20_upgrades_form_metadata_callback() {
 	$forms = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => 'give_forms',
 			'posts_per_page' => 100,
@@ -1850,7 +1850,7 @@ function give_v20_upgrades_payment_metadata_callback() {
 	$forms = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => 'give_payment',
 			'posts_per_page' => 100,
@@ -2054,7 +2054,7 @@ function give_v20_move_metadata_into_new_table_callback() {
 	$payments = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => array( 'give_forms', 'give_payment' ),
 			'posts_per_page' => 100,
@@ -2854,7 +2854,7 @@ function give_v210_verify_form_status_upgrades_callback() {
 	$donation_forms = new WP_Query(
 		array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => 'give_forms',
 			'posts_per_page' => 20,
@@ -3024,7 +3024,7 @@ function give_v224_update_donor_meta_forms_id_callback() {
 
 	$donations = new WP_Query( array(
 			'paged'          => $give_updates->step,
-			'status'         => 'any',
+			'post_status'    => 'any',
 			'order'          => 'ASC',
 			'post_type'      => array( 'give_payment' ),
 			'posts_per_page' => 20,
@@ -3204,7 +3204,7 @@ function give_v230_save_stats_data_callback(){
 
 	$donations = new WP_Query( array(
 			'paged'          => $give_updates->step,
-			'status'         => 'publish',
+			'post_status'    => 'publish',
 			'order'          => 'ASC',
 			'post_type'      => array( 'give_payment' ),
 			'posts_per_page' => 20,
