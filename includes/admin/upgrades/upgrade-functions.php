@@ -427,6 +427,15 @@ function give_show_upgrade_notices( $give_updates ) {
 			'callback' => 'give_v230_move_donation_note_callback',
 		)
 	);
+
+	// v2.3.0 Move donation notes to custom comment table.
+	$give_updates->register(
+		array(
+			'id'       => 'v230_save_stats_data',
+			'version'  => '2.3.0',
+			'callback' => 'give_v230_save_stats_data_callback',
+		)
+	);
 }
 
 add_action( 'give_register_updates', 'give_show_upgrade_notices' );
@@ -3175,5 +3184,59 @@ function give_v230_move_donation_note_callback() {
 	} else {
 		// The Update Ran.
 		give_set_upgrade_complete( 'v230_move_donation_note' );
+	}
+}
+
+
+/**
+ * Move stats data to new table
+ *
+ * @since 2.3.0
+ */
+function give_v230_save_stats_data_callback(){
+	global $wpdb;
+	$give_updates = Give_Updates::get_instance();
+
+	// Create table if does not exist.
+	if( ! $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', Give()->stats_db->table_name ) ) ) {
+		Give()->stats_db->create_table();
+	}
+
+	$donations = new WP_Query( array(
+			'paged'          => $give_updates->step,
+			'status'         => 'publish',
+			'order'          => 'ASC',
+			'post_type'      => array( 'give_payment' ),
+			'posts_per_page' => 20,
+		)
+	);
+
+	if ( $donations->have_posts() ) {
+		$give_updates->set_percentage( $donations->found_posts, $give_updates->step * 20 );
+
+		while ( $donations->have_posts() ) {
+			$donations->the_post();
+
+			$donation = new Give_Payment( get_the_ID() );
+
+			// few site date broken , so save correct date in stats.
+			$date = '1970' !== date( 'Y', strtotime( $donation->date ) )
+				? $donation->date
+				: $donation->completed_date;
+
+			Give()->stats_db->insert(
+				array(
+					'form_id'     => $donation->form_id,
+					'donation_id' => $donation->ID,
+					'donor_id'    => $donation->donor_id,
+					'date'        => $date,
+					'amount'      => $donation->total,
+				)
+			);
+		}
+
+		wp_reset_postdata();
+	} else {
+		give_set_upgrade_complete( 'v230_save_stats_data' );
 	}
 }
