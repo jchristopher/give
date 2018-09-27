@@ -5,10 +5,13 @@
 
 $donations             = array();
 $donation_history_args = Give()->session->get( 'give_donation_history_args' );
+$current_user_id       = get_current_user_id();
 
 // User's Donations.
 if ( is_user_logged_in() ) {
-	$donations = give_get_users_donations( get_current_user_id(), 20, true, 'any' );
+	$donations       = give_get_users_donations( $current_user_id, 20, true, 'any' );
+	$donor           = Give()->donors->get_donor_by( 'user_id', $current_user_id );
+	$donations_count = count( explode( ',', $donor->payment_ids ) );
 } elseif ( Give()->email_access->token_exists ) {
 	// Email Access Token?
 	$donations = give_get_users_donations( 0, 20, true, 'any' );
@@ -56,9 +59,10 @@ if ( is_user_logged_in() ) {
 		$donations = give_get_users_donations( $email, give_get_limit_display_donations(), true, 'any' );
 	} else {
 		$donations = give_get_users_donations( $email, 20, true, 'any' );
-	}
-}
+	} // End if().
+} // End if().
 
+// Render frontend notices.
 Give()->notices->render_frontend_notices( 0 );
 
 if ( $donations ) : ?>
@@ -258,7 +262,7 @@ if ( $donations ) : ?>
 				'base'    => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
 				'format'  => '?paged=%#%',
 				'current' => max( 1, get_query_var( 'paged' ) ),
-				'total'   => ceil( give_count_donations_of_donor() / 20 ), // 20 items per page
+				'total'   => ceil( $donations_count / 20 ),
 			) );
 			?>
 		</div>
