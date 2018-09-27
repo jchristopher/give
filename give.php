@@ -265,6 +265,13 @@ if ( ! class_exists( 'Give' ) ) :
 		public $comment;
 
 		/**
+		 * Give_DB_Stats Object
+		 *
+		 * @var    Give_DB_Stats $stats_db
+		 */
+		public $stats_db;
+
+		/**
 		 * Main Give Instance
 		 *
 		 * Ensures that only one instance of Give exists in memory at any one
@@ -362,6 +369,8 @@ if ( ! class_exists( 'Give' ) ) :
 			$this->comment                = Give_Comment::get_instance();
 			$this->session_db             = new Give_DB_Sessions();
 			$this->session                = Give_Session::get_instance();
+			$this->stats_db             = new Give_DB_Stats();
+
 
 			/**
 			 * Fire the action after Give core loads.
@@ -510,6 +519,7 @@ if ( ! class_exists( 'Give' ) ) :
 			require_once GIVE_PLUGIN_DIR . 'includes/class-give-db-donor-meta.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/class-give-db-form-meta.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/class-give-db-sequential-ordering.php';
+			require_once GIVE_PLUGIN_DIR . 'includes/class-give-db-stats.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/class-give-donor.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/class-give-donor-wall-widget.php';
 			require_once GIVE_PLUGIN_DIR . 'includes/class-give-stats.php';
