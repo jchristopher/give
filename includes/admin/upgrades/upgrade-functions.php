@@ -3230,7 +3230,7 @@ function give_v230_save_stats_data_callback(){
 					'donation_id' => $donation->ID,
 					'donor_id'    => $donation->donor_id,
 					'date'        => $date,
-					'amount'      => $donation->total,
+					'amount'      => give_sanitize_amount_for_db( $donation->total ),
 				)
 			);
 		}
