@@ -421,6 +421,17 @@ class Give_Background_Updater extends WP_Background_Process {
 
 
 	/**
+	 * Get process running or not flag
+	 *
+	 * @since 2.3.0
+	 * @return bool
+	 */
+	public function get_is_process_running(){
+		return $this->is_process_running();
+	}
+
+
+	/**
 	 * Flush background update related cache to prevent task to go to stalled state.
 	 *
 	 * @since 2.0.3

@@ -346,7 +346,7 @@ class Give_Updates {
 
 		// Do not stop background process immediately if task running.
 		// @see Give_Background_Updater::lock_process
-		if ( ! $force && self::$background_updater->is_process_running() ) {
+		if ( ! $force && self::$background_updater->get_is_process_running() ) {
 			update_option( 'give_pause_upgrade', 1, false );
 
 			return true;
