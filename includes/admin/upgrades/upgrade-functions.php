@@ -3198,8 +3198,8 @@ function give_v230_save_stats_data_callback(){
 	$give_updates = Give_Updates::get_instance();
 
 	// Create table if does not exist.
-	if( ! $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', Give()->stats_db->table_name ) ) ) {
-		Give()->stats_db->create_table();
+	if( ! $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', Give()->donation_stats_db->table_name ) ) ) {
+		Give()->donation_stats_db->create_table();
 	}
 
 	$donations = new WP_Query( array(
@@ -3224,13 +3224,15 @@ function give_v230_save_stats_data_callback(){
 				? $donation->date
 				: $donation->completed_date;
 
-			Give()->stats_db->insert(
+			Give()->donation_stats_db->insert(
 				array(
 					'form_id'     => $donation->form_id,
 					'donation_id' => $donation->ID,
 					'donor_id'    => $donation->donor_id,
 					'date'        => $date,
 					'amount'      => give_sanitize_amount_for_db( $donation->total ),
+					'anonymous'   => (int) give_is_anonymous_donation( $donation->ID ),
+					'type'        => 'donation',
 				)
 			);
 		}
