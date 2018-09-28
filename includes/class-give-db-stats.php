@@ -3,8 +3,8 @@
  * Stats DB
  *
  * @package     Give
- * @subpackage  Classes/Give_DB_Stats
- * @copyright   Copyright (c) 2016, WordImpress
+ * @subpackage  Classes/Give_DB_Donation_Stats
+ * @copyright   Copyright (c) 2018, WordImpress
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       2.3.0
  */
@@ -15,17 +15,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Give_DB_Stats Class
+ * Give_DB_Donation_Stats Class
  *
  * This class is for interacting with the donor database table.
  *
  * @since 1.0
  */
-class Give_DB_Stats extends Give_DB {
+class Give_DB_Donation_Stats extends Give_DB {
 	private $stats;
 
 	/**
-	 * Give_DB_Stats constructor.
+	 * Give_DB_Donation_Stats constructor.
 	 *
 	 * Set up the Give DB Donor class.
 	 *
@@ -36,7 +36,7 @@ class Give_DB_Stats extends Give_DB {
 		/* @var WPDB $wpdb */
 		global $wpdb;
 
-		$wpdb->give_stats  = $this->table_name = "{$wpdb->prefix}give_stats";
+		$wpdb->give_donation_stats  = $this->table_name = "{$wpdb->prefix}give_donation_stats";
 		$this->primary_key = 'id';
 		$this->version     = '1.0';
 
@@ -64,6 +64,8 @@ class Give_DB_Stats extends Give_DB {
 			'donor_id'    => '%s',
 			'date'        => '%s',
 			'amount'      => '%f',
+			'anonymous'   => '%s',
+			'type'        => '%s',
 		);
 	}
 
@@ -81,6 +83,8 @@ class Give_DB_Stats extends Give_DB {
 			'donation_id' => 0,
 			'donor_id'    => 0,
 			'amount'      => 0,
+			'anonymous'   => 0,
+			'type'        => '',
 		);
 	}
 
@@ -103,6 +107,8 @@ class Give_DB_Stats extends Give_DB {
 		donor_id bigint(20) NOT NULL,
 		date longtext NOT NULL,
 		amount bigint(20) NOT NULL,
+		anonymous tinyint NOT NULL,
+		type longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) CHARACTER SET utf8 COLLATE utf8_general_ci;";
 

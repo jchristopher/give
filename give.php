@@ -265,11 +265,11 @@ if ( ! class_exists( 'Give' ) ) :
 		public $comment;
 
 		/**
-		 * Give_DB_Stats Object
+		 * Give_DB_Donation_Stats Object
 		 *
-		 * @var    Give_DB_Stats $stats_db
+		 * @var    Give_DB_Donation_Stats $donation_stats_db
 		 */
-		public $stats_db;
+		public $donation_stats_db;
 
 		/**
 		 * Main Give Instance
@@ -369,7 +369,7 @@ if ( ! class_exists( 'Give' ) ) :
 			$this->comment                = Give_Comment::get_instance();
 			$this->session_db             = new Give_DB_Sessions();
 			$this->session                = Give_Session::get_instance();
-			$this->stats_db             = new Give_DB_Stats();
+			$this->donation_stats_db      = new Give_DB_Donation_Stats();
 
 
 			/**
