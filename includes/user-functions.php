@@ -74,7 +74,7 @@ function give_get_users_donations( $user = 0, $number = 20, $pagination = false,
 
 	}
 
-	$donations = give_get_payments( apply_filters( 'give_get_users_donations_args', $args ) );
+	$donations = give_get_payments( $args );
 
 	// No donations.
 	if ( ! $donations ) {
