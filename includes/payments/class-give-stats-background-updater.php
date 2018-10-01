@@ -108,10 +108,13 @@ class Give_Stats_Background_Updater extends WP_Background_Process {
 		$hash = give_get_payment_key( $item['donation_id'] );
 
 		// Bailout.
-		if(
-			$hash !== $item['hash']
-			|| 'publish' != get_post_status( $item['donation_id'] )
-		) {
+		if( $hash !== $item['hash'] ) {
+			return false;
+		}
+
+		// Remove stat if donation status does not set to complete
+		if( 'publish' != get_post_status( $item['donation_id'] ) ) {
+			Give()->donation_stats_db->delete_by( 'donation_id', $item['donation_id'] );
 			return false;
 		}
 
