@@ -118,6 +118,49 @@ class Give_DB_Donation_Stats extends Give_DB {
 	}
 
 	/**
+	 * Add/Update a donor
+	 *
+	 * @param  array $data List of donor data to add.
+	 *
+	 * @since  2.3.0
+	 * @access public
+	 *
+	 * @return int|bool
+	 */
+	public function add( $data = array() ) {
+		$args = wp_parse_args(
+			$data,
+			$this->get_column_defaults()
+		);
+
+		// Bailout.
+		if (
+			empty( $args['donation_id'] )
+			|| empty( $args['donor_id'] )
+			|| empty( $args['form_id'] )
+		) {
+			return false;
+		}
+
+		/* @var stdClass $stat */
+		$stat = $this->get_results_by( array( 'donation_id' => $args['donation_id'] ) );
+
+		// update an existing donor.
+		if ( ! empty( $stat ) ) {
+
+			$status = $this->update( $stat->id, $args );
+
+			return $status ? $stat->id : false;
+
+		} else {
+
+			return $this->insert( $args, 'donor' );
+
+		}
+
+	}
+
+	/**
 	 * Get earnings
 	 *
 	 * @since 2.3.0
