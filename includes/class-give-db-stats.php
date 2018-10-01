@@ -264,8 +264,8 @@ class Give_DB_Donation_Stats extends Give_DB {
 		if ( array_key_exists( 'date', $args ) ) {
 			$this->stats->setup_dates( $args['date'] );
 
-			$where[] = 'date > ' . date( 'Y-m-d H:i:s', $this->stats->start_date );
-			$where[] = 'date < ' . date( 'Y-m-d H:i:s', $this->stats->end_date );
+			$where[] = sprintf( 'date > \'%s\'', date( 'Y-m-d H:i:s', $this->stats->start_date ) );
+			$where[] = sprintf( 'date < \'%s\'', date( 'Y-m-d H:i:s', $this->stats->end_date ) );
 		}
 
 		if( empty( $where ) ) {
