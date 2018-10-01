@@ -63,7 +63,7 @@ class Give_DB_Donation_Stats extends Give_DB {
 			'donation_id' => '%s',
 			'donor_id'    => '%s',
 			'date'        => '%s',
-			'amount'      => '%f',
+			'amount'      => '%s',
 			'anonymous'   => '%s',
 			'type'        => '%s',
 		);
@@ -106,7 +106,7 @@ class Give_DB_Donation_Stats extends Give_DB {
 		donation_id bigint(20) NOT NULL,
 		donor_id bigint(20) NOT NULL,
 		date longtext NOT NULL,
-		amount bigint(20) NOT NULL,
+		amount mediumtext NOT NULL,
 		anonymous tinyint NOT NULL,
 		type longtext NOT NULL,
 		PRIMARY KEY  (id)
