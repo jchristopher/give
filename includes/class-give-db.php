@@ -370,6 +370,49 @@ abstract class Give_DB {
 	}
 
 	/**
+	 * Delete a row by the the specified column / value
+	 *
+	 * @since  2.3.0
+	 * @access public
+	 *
+	 * @param  string $column_where Column name.
+	 * @param  string $column_value Column value.
+	 *
+	 * @return string
+	 */
+	public function delete_by( $column_where, $column_value ) {
+		/* @var WPDB $wpdb */
+		global $wpdb;
+
+		$columns = $this->get_columns();
+
+		// Bailout.
+		if (
+			empty( $column_where )
+			|| empty( $column_value )
+			|| array_key_exists($column_where, array_keys( $columns ) )
+		) {
+			return null;
+		}
+
+		$column_where = esc_sql( $column_where );
+
+		$sql = $wpdb->prepare(
+			"
+				DELETE FROM {$this->table_name}
+				WHERE {$column_where} = {$columns[$column_where]}
+				",
+			$column_value
+		);
+
+		if ( false === $wpdb->query( $sql ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Check if the given table exists
 	 *
 	 * @since  1.3.2
