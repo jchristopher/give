@@ -169,27 +169,27 @@ class Give_DB_Donation_Stats extends Give_DB {
 	 *
 	 * @return string Sanitize amount
 	 */
-	public function get_earnings( $args ) {
-		global $wpdb;
+	public function get_earnings( $args = array() ) {
+		$args['stat']   = 'earning';
+		$args['fields'] = 'amount';
 
-		// Setup date from date string.
-		if ( is_string( $args['date'] ) ) {
-			$this->stats->setup_dates( $args['date'] );
-		}
+		return $this->get_stats( $args );
+	}
 
-		$sql = $wpdb->prepare(
-			"
-			SELECT sum(amount) from {$this->table_name}
-			WHERE date > %s
-			AND date < %s
-			",
-			date( 'Y-m-d H:i:s', $this->stats->start_date ),
-			date( 'Y-m-d H:i:s', $this->stats->end_date )
-		);
+	/**
+	 * Get sales
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param array $args
+	 *
+	 * @return string Sanitize amount
+	 */
+	public function get_sales( $args = array() ) {
+		$args['stat']  = 'sale';
+		$args['field'] = 'id';
 
-		$amount = $wpdb->get_var( $sql );
-
-		return $amount;
+		return $this->get_stats( $args );
 	}
 
 	/**
@@ -201,26 +201,110 @@ class Give_DB_Donation_Stats extends Give_DB {
 	 *
 	 * @return string Sanitize amount
 	 */
-	public function get_sales( $args ) {
+	private function get_stats( $args ) {
 		global $wpdb;
 
-		// Setup date from date string.
-		if ( is_string( $args['date'] ) ) {
-			$this->stats->setup_dates( $args['date'] );
-		}
+		$args['pages']  = 0;
+		$args['number'] = - 1;
 
-		$sql = $wpdb->prepare(
-			"
-			SELECT COUNT(id) from {$this->table_name}
-			WHERE date > %s
-			AND date < %s
-			",
-			date( 'Y-m-d H:i:s', $this->stats->start_date ),
-			date( 'Y-m-d H:i:s', $this->stats->end_date )
-		);
+		$fields = $this->get_field_query( $args );
+		$where  = $this->get_where_query( $args );
+		$limit  = $this->get_limit_query( $args );
+
+		$sql = "SELECT {$fields} from {$this->table_name} {$where} {$limit}";
+		$sql = trim( $sql );
 
 		$amount = $wpdb->get_var( $sql );
 
 		return $amount;
+	}
+
+	/**
+	 * Get where query string
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param array $args
+	 *
+	 * @return string
+	 */
+	private function get_where_query( $args ) {
+		$where = array();
+
+		// Remove empty data.
+		$args = array_filter( $args );
+
+		// Form ID.
+		if( array_key_exists( 'form_id', $args ) ) {
+			$where[] = "form_id={$args['form_id']}";
+		}
+
+		// Donor ID.
+		if( array_key_exists( 'donor_id', $args ) ) {
+			$where[] = "donor_id={$args['donor_id']}";
+		}
+
+		// Date.
+		if ( array_key_exists( 'date', $args ) ) {
+			$this->stats->setup_dates( $args['date'] );
+
+			$where[] = 'date > ' . date( 'Y-m-d H:i:s', $this->stats->start_date );
+			$where[] = 'date < ' . date( 'Y-m-d H:i:s', $this->stats->end_date );
+		}
+
+		if( empty( $where ) ) {
+			return '';
+		}
+
+		return 'WHERE ' . implode( ' AND ', $where );
+	}
+
+	/**
+	 * Get field query
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param $args
+	 *
+	 * @return string
+	 */
+	private function get_field_query( $args ) {
+		// Set field query
+		$fields = ! empty( $args['fields'] ) ? $args['fields'] : 'id';
+
+		if ( array_key_exists( 'stat', $args ) && -1 === $args['number'] ) {
+
+			if ( 'sale' === $args['stat'] ) {
+				$fields = 'COUNT(id)';
+			} elseif ( 'earning' === $args['stat'] ) {
+				$fields = 'SUM(amount)';
+			}
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Get limit query
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param $args
+	 *
+	 * @return string
+	 */
+	private function get_limit_query( $args ) {
+		$limit = '';
+
+		$page = ! empty( $args['paged'] ) ? $args['paged'] : 0;
+		$number = ! empty( $args['number'] ) ? $args['number'] : -1;
+		$offset = $page ? $number * ( $page - 1 ) : 0;
+
+		if( -1 !== $number ){
+			$limit = "LIMIT {$number}";
+			$limit = $offset ? "{$limit} OFFSET {$offset}" : $limit;
+		}
+
+		return $limit;
 	}
 }
