@@ -52,11 +52,10 @@ function give_get_users_donations( $user = 0, $number = 20, $pagination = false,
 	}
 
 	$args = apply_filters( 'give_get_users_donations_args', array(
-		'user'     => $user,
-		'number'   => $number,
-		'status'   => $status,
-		'orderby'  => 'date',
-		'children' => true, // Include renewal payments as well.
+		'user'    => $user,
+		'number'  => $number,
+		'status'  => $status,
+		'orderby' => 'date',
 	) );
 
 	if ( $pagination ) {
