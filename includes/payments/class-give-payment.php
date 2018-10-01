@@ -1002,13 +1002,6 @@ final class Give_Payment {
 
 					$donor->decrease_donation_count();
 
-					Give_Donor_Stats::dispatch( array(
-						'donor'         => $donor->id,
-						'donation'      => $this->ID,
-						'amount_change' => $total_change,
-						'hash'          => $this->key,
-					) );
-
 				} elseif ( $total_change > 0 ) {
 
 					// Increase the donor's donation stats.
@@ -1016,13 +1009,6 @@ final class Give_Payment {
 					give_increase_total_earnings( $total_change );
 
 					$donor->increase_purchase_count();
-
-					Give_Donor_Stats::dispatch( array(
-						'donor'         => $donor->id,
-						'donation'      => $this->ID,
-						'amount_change' => $total_change,
-						'hash'          => $this->key,
-					) );
 				}
 
 				// Verify and update form meta based on the form status.
@@ -1036,6 +1022,11 @@ final class Give_Payment {
 		if ( true === $saved ) {
 			$this->setup_payment( $this->ID );
 		}
+
+		Give()->donation_stats_db->dispatch( array(
+			'donation_id' => $this->ID,
+			'hash'        => $this->key,
+		) );
 
 		return $saved;
 	}

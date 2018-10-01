@@ -67,15 +67,6 @@ class Give_API {
 	public $user_id = 0;
 
 	/**
-	 * Instance of Give Stats class
-	 *
-	 * @var object
-	 * @access private
-	 * @since  1.1
-	 */
-	private $stats;
-
-	/**
 	 * Response data to return
 	 *
 	 * @var array
@@ -171,23 +162,6 @@ class Give_API {
 
 		// Allow API request logging to be turned off
 		$this->log_requests = apply_filters( 'give_api_log_requests', $this->log_requests );
-
-		// Setup Give_Payment_Stats instance
-		$this->stats = new Give_Payment_Stats();
-
-		$this->load_updaters();
-	}
-
-
-	/**
-	 * Handle updater file loading.
-	 *
-	 * @since  2.3.0
-	 * @access private
-	 */
-	private function load_updaters() {
-		// Load stat background updater.
-		$this->updaters['stats'] = require_once GIVE_PLUGIN_DIR . 'includes/payments/class-give-stats-background-updater.php';
 	}
 
 	/**

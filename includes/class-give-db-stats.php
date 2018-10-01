@@ -22,7 +22,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0
  */
 class Give_DB_Donation_Stats extends Give_DB {
+	/**
+	 * Object of Give_Stats
+	 *
+	 * @since 2.3.0
+	 * @var Give_Stats
+	 */
 	private $stats;
+
+	/**
+	 * Object of Give_Stats_Background_Updater
+	 *
+	 * @since 2.3.0
+	 *
+	 * @var Give_Stats_Background_Updater
+	 */
+	public $updater;
 
 	/**
 	 * Give_DB_Donation_Stats constructor.
@@ -40,7 +55,8 @@ class Give_DB_Donation_Stats extends Give_DB {
 		$this->primary_key = 'id';
 		$this->version     = '1.0';
 
-		$this->stats = new Give_Stats();
+		$this->stats   = new Give_Stats();
+		$this->updater = require_once GIVE_PLUGIN_DIR . 'includes/payments/class-give-stats-background-updater.php';
 
 		// Install table.
 		$this->register_table();
@@ -142,12 +158,12 @@ class Give_DB_Donation_Stats extends Give_DB {
 			return false;
 		}
 
-		/* @var stdClass $stat */
 		$stat = $this->get_results_by( array( 'donation_id' => $args['donation_id'] ) );
 
-		// update an existing donor.
+		// Update an existing donor.
 		if ( ! empty( $stat ) ) {
-
+			/* @var stdClass $stat */
+			$stat = current( $stat );
 			$status = $this->update( $stat->id, $args );
 
 			return $status ? $stat->id : false;
@@ -306,5 +322,32 @@ class Give_DB_Donation_Stats extends Give_DB {
 		}
 
 		return $limit;
+	}
+
+	/**
+	 * Dispatch stat counter request
+	 * Note: only for internal use
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param array $args     {
+	 *
+	 * @type int    $donation Donation ID.
+	 * @type string hash Unique string to validate request.
+	 * }
+	 *
+	 * @return bool
+	 */
+	public function dispatch( $args ) {
+		// Bailout.
+		if( empty( $args['donation_id'] ) || empty( $args['hash'] ) ) {
+			return false;
+		}
+
+		$this->updater->push_to_queue( $args )
+		              ->save()
+		              ->dispatch();
+
+		return true;
 	}
 }

@@ -97,14 +97,37 @@ class Give_Stats_Background_Updater extends WP_Background_Process {
 	 * @return array|bool
 	 */
 	protected function task( $item ) {
-		switch ( $item['type'] ) {
-			case 'donor':
-				Give_Donor_Stats::update($item);
-				break;
-
-			case 'form':
-				break;
+		// Bailout.
+		if(
+			empty( $item['donation_id'] )
+			|| empty( $item['hash'] )
+		) {
+			return false;
 		}
+
+		$hash = give_get_payment_key( $item['donation_id'] );
+
+		// Bailout.
+		if(
+			$hash !== $item['hash']
+			|| 'publish' != get_post_status( $item['donation_id'] )
+		) {
+			return false;
+		}
+
+		$donation = new Give_Payment( $item['donation_id'] );
+
+		Give()->donation_stats_db->add(
+			array(
+				'form_id'     => $donation->form_id,
+				'donation_id' => $donation->ID,
+				'donor_id'    => $donation->donor_id,
+				'date'        => $donation->date,
+				'amount'      => give_sanitize_amount_for_db( $donation->total ),
+				'anonymous'   => (int) give_is_anonymous_donation( $donation->ID ),
+				'type'        => 'donation',
+			)
+		);
 
 		return false;
 	}
