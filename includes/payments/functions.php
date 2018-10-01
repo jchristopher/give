@@ -532,16 +532,15 @@ function give_get_payment_status( $payment_id, $return_label = false ) {
  */
 function give_get_payment_statuses() {
 	$payment_statuses = array(
-		'pending'           => __( 'Pending', 'give' ),
-		'publish'           => __( 'Complete', 'give' ),
-		'refunded'          => __( 'Refunded', 'give' ),
-		'failed'            => __( 'Failed', 'give' ),
-		'cancelled'         => __( 'Cancelled', 'give' ),
-		'abandoned'         => __( 'Abandoned', 'give' ),
-		'preapproval'       => __( 'Pre-Approved', 'give' ),
-		'processing'        => __( 'Processing', 'give' ),
-		'revoked'           => __( 'Revoked', 'give' ),
-		'give_subscription' => __( 'Renewal', 'give' ),
+		'pending'     => __( 'Pending', 'give' ),
+		'publish'     => __( 'Complete', 'give' ),
+		'refunded'    => __( 'Refunded', 'give' ),
+		'failed'      => __( 'Failed', 'give' ),
+		'cancelled'   => __( 'Cancelled', 'give' ),
+		'abandoned'   => __( 'Abandoned', 'give' ),
+		'preapproval' => __( 'Pre-Approved', 'give' ),
+		'processing'  => __( 'Processing', 'give' ),
+		'revoked'     => __( 'Revoked', 'give' ),
 	);
 
 	return apply_filters( 'give_payment_statuses', $payment_statuses );
