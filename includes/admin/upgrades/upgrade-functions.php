@@ -3224,7 +3224,7 @@ function give_v230_save_stats_data_callback(){
 				? $donation->date
 				: $donation->completed_date;
 
-			Give()->donation_stats_db->insert(
+			Give()->donation_stats_db->add(
 				array(
 					'form_id'     => $donation->form_id,
 					'donation_id' => $donation->ID,
