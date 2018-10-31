@@ -11,6 +11,7 @@ const { __ } = wp.i18n;
 const {
 	withSelect,
 	registerStore,
+	dispatch
 } = wp.data;
 
 /**
@@ -26,28 +27,27 @@ import SelectForm from '../../components/select-form';
  * Render Block UI For Editor
  */
 const GiveForm = ( props ) => {
-	const { attributes, form } = props;
+	const { attributes, forms, form } = props;
 	const { id } = attributes;
-	const { data } = form;
 
 	// Render block UI
 	let blockUI;
 
 	if ( ! id ) {
-		if ( isUndefined( data ) ) {
+		if ( null === forms ) {
 			blockUI = <GiveBlankSlate title={ __( 'Loading...' ) } isLoader={ true } />;
-		} else if ( isEmpty( data ) ) {
+		} else if ( isEmpty( forms ) || || form.hasOwnProperty('error') ) {
 			blockUI = <NoForms />;
 		} else {
 			blockUI = <SelectForm { ... { ...props } } />;
 		}
-	} else if ( isEmpty( data ) ) {
-		blockUI = isLoading ?
+	} else if ( isEmpty( form ) || form.hasOwnProperty('error') ) {
+		blockUI = null === form ?
 			<GiveBlankSlate title={ __( 'Loading...' ) } isLoader={ true } /> :
 			<EditForm formId={ id } { ... { ...props } } />;
 	} else {
 		blockUI = <FormPreview
-			html={ data }
+			html={ form }
 			{ ... { ...props } } />;
 	}
 
@@ -72,10 +72,24 @@ const actions = {
 			path,
 		};
 	},
+
+	setDonationForms( donationFormsData ) {
+		return {
+			type: 'SET_DONATION_FORMS',
+			donationFormsData,
+		};
+	},
+
+	getDonationForms( path ) {
+		return {
+			type: 'RECEIVE_DONATION_FORMS',
+			path,
+		};
+	},
 };
 
 const store = registerStore( 'give/donation-form', {
-	reducer( state = { donationFormData: {} }, action ) {
+	reducer( state = { donationFormData: null, donationFormsData: null }, action ) {
 
 		switch ( action.type ) {
 			case 'SET_DONATION_FORM':
@@ -83,8 +97,18 @@ const store = registerStore( 'give/donation-form', {
 					...state,
 					donationFormData: action.donationFormData,
 				};
+
+			case 'SET_DONATION_FORMS':
+				return {
+					...state,
+					donationFormsData: action.donationFormsData,
+				};
+
 			case 'RECEIVE_DONATION_FORM':
 				return action.donationFormData;
+
+			case 'RECEIVE_DONATION_FORMS':
+				return action.donationFormsData;
 		}
 
 		return state;
@@ -97,15 +121,22 @@ const store = registerStore( 'give/donation-form', {
 			const { donationFormData } = state;
 			return donationFormData;
 		},
+
+		getDonationForms( state ) {
+			const { donationFormsData } = state;
+			return donationFormsData;
+		},
 	},
 
 	resolvers: {
-		* getDonationForm( state, id, parameters ) {
-			const donationFormData = wp.apiFetch( { path: `/give-api/v2/form/${ id }/?${ parameters }` } )
-				.then( donationFormData => {
-					return actions.setDonationForm( donationFormData );
-				} )
-			yield donationFormData;
+		async getDonationForm( id, parameters ) {
+			const donationFormData = await wp.apiRequest( { path: `/give-api/v2/form/${ id }/?${ parameters }` } );
+			dispatch( 'give/donation-form' ).setDonationForm( donationFormData );
+		},
+
+		async getDonationForms() {
+			const donationFormsData = await wp.apiRequest( { path: `/wp/v2/give_forms` } );
+			dispatch( 'give/donation-form' ).setDonationForms( donationFormsData );
 		},
 	},
 
@@ -116,7 +147,6 @@ const store = registerStore( 'give/donation-form', {
  */
 export default withSelect( ( select, props ) => {
 	const { showTitle, showGoal, showContent, displayStyle, continueButtonTitle, id } = props.attributes;
-
 	let parameters = {
 		show_title: showTitle,
 		show_goal: showGoal,
@@ -131,11 +161,7 @@ export default withSelect( ( select, props ) => {
 	parameters = stringify( pickBy( parameters, value => ! isUndefined( value ) ) );
 
 	return {
-		form: {
-			data: select( 'give/donation-form' ).getDonationForm( id, parameters )
-		},
-		forms: {
-			data: []
-		}
+		form: select('give/donation-form').getDonationForm(id, parameters),
+		forms: select('give/donation-form').getDonationForms(),
 	}
 })( GiveForm )

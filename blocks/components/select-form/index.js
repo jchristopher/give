@@ -26,8 +26,8 @@ const SelectForm = ( props ) => {
 
 		let formOptions = [];
 
-		if ( ! isUndefined( props.forms.data ) ) {
-			formOptions = props.forms.data.map(
+		if ( ! isUndefined( props.forms ) ) {
+			formOptions = props.forms.map(
 				( form ) => {
 					return {
 						value: form.id,

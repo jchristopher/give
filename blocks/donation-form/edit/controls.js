@@ -36,7 +36,7 @@ const Controls = ( props ) => {
 				{ /* Edit Form */ }
 				<a
 					className="control-button edit-form"
-					href={ `${ wpApiSettings.schema.url }/wp-admin/post.php?post=${ props.attributes.id }&action=edit` }
+					href={ `${ wp.api.utils.getRootUrl() }/wp-admin/post.php?post=${ props.attributes.id }&action=edit` }
 					target="_blank"
 					rel="noopener noreferrer"
 					tooltip={ __( 'Edit donation form' ) }
