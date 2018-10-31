@@ -528,7 +528,8 @@ class Give_Scripts {
 			'give-blocks-js',
 			GIVE_PLUGIN_URL . 'assets/dist/js/gutenberg.js',
 			array( 'wp-i18n', 'wp-element', 'wp-blocks', 'wp-components', 'wp-api' ),
-			GIVE_VERSION
+			GIVE_VERSION,
+			true
 		);
 
 		// Enqueue public styles
@@ -538,7 +539,7 @@ class Give_Scripts {
 		wp_enqueue_style(
 			'give-blocks-css',
 			GIVE_PLUGIN_URL . 'assets/dist/css/gutenberg.css',
-			array( ),
+			array(),
 			GIVE_VERSION
 		);
 
