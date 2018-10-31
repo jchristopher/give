@@ -1063,7 +1063,7 @@ final class Give_Payment {
 
 			// Deal with variable pricing.
 			if ( give_has_variable_prices( $donation->ID ) ) {
-				$prices          = give_get_meta( $form_id, '_give_donation_levels', true );
+				$prices          = give_get_form_meta( $form_id, '_give_donation_levels', true );
 				$donation_amount = '';
 
 				// Loop through prices.
@@ -1343,7 +1343,7 @@ final class Give_Payment {
 			add_filter( 'get_post_metadata', 'give_bc_v20_get_payment_meta', 999, 4 );
 		}
 
-		$meta = give_get_meta( $this->ID, $meta_key, $single );
+		$meta = give_get_donation_meta( $this->ID, $meta_key, $single );
 
 		/**
 		 * Filter the specific meta key value.
@@ -1798,12 +1798,12 @@ final class Give_Payment {
 	 * @return array The Address information for the payment.
 	 */
 	private function setup_address() {
-		$address['line1']   = give_get_meta( $this->ID, '_give_donor_billing_address1', true, '' );
-		$address['line2']   = give_get_meta( $this->ID, '_give_donor_billing_address2', true, '' );
-		$address['city']    = give_get_meta( $this->ID, '_give_donor_billing_city', true, '' );
-		$address['state']   = give_get_meta( $this->ID, '_give_donor_billing_state', true, '' );
-		$address['zip']     = give_get_meta( $this->ID, '_give_donor_billing_zip', true, '' );
-		$address['country'] = give_get_meta( $this->ID, '_give_donor_billing_country', true, '' );
+		$address['line1']   = give_get_donation_meta( $this->ID, '_give_donor_billing_address1', true, '' );
+		$address['line2']   = give_get_donation_meta( $this->ID, '_give_donor_billing_address2', true, '' );
+		$address['city']    = give_get_donation_meta( $this->ID, '_give_donor_billing_city', true, '' );
+		$address['state']   = give_get_donation_meta( $this->ID, '_give_donor_billing_state', true, '' );
+		$address['zip']     = give_get_donation_meta( $this->ID, '_give_donor_billing_zip', true, '' );
+		$address['country'] = give_get_donation_meta( $this->ID, '_give_donor_billing_country', true, '' );
 
 		return $address;
 	}

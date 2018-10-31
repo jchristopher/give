@@ -888,9 +888,9 @@ function give_update_payment_meta( $payment_id = 0, $meta_key = '', $meta_value 
 function give_get_payment_meta_user_info( $payment_id ) {
 	$donor_id   = 0;
 	$donor_info = array(
-		'first_name' => give_get_meta( $payment_id, '_give_donor_billing_first_name', true ),
-		'last_name'  => give_get_meta( $payment_id, '_give_donor_billing_last_name', true ),
-		'email'      => give_get_meta( $payment_id, '_give_donor_billing_donor_email', true ),
+		'first_name' => give_get_donation_meta( $payment_id, '_give_donor_billing_first_name', true ),
+		'last_name'  => give_get_donation_meta( $payment_id, '_give_donor_billing_last_name', true ),
+		'email'      => give_get_donation_meta( $payment_id, '_give_donor_billing_donor_email', true ),
 	);
 
 	if ( empty( $donor_info['first_name'] ) ) {
@@ -929,7 +929,7 @@ function give_get_payment_meta_user_info( $payment_id ) {
  * @return int $form_id Form ID.
  */
 function give_get_payment_form_id( $payment_id ) {
-	return (int) give_get_meta( $payment_id, '_give_payment_form_id', true );
+	return (int) give_get_donation_meta( $payment_id, '_give_payment_form_id', true );
 }
 
 /**
@@ -942,7 +942,7 @@ function give_get_payment_form_id( $payment_id ) {
  * @return string $email User email.
  */
 function give_get_payment_user_email( $payment_id ) {
-	$email = give_get_meta( $payment_id, '_give_payment_donor_email', true );
+	$email = give_get_donation_meta( $payment_id, '_give_payment_donor_email', true );
 
 	if ( empty( $email ) && ( $donor_id = give_get_payment_donor_id( $payment_id ) ) ) {
 		$email = Give()->donors->get_column( 'email', $donor_id );
@@ -1009,7 +1009,7 @@ function give_get_payment_user_id( $payment_id ) {
  * @return int $payment->customer_id Donor ID.
  */
 function give_get_payment_donor_id( $payment_id ) {
-	return give_get_meta( $payment_id, '_give_payment_donor_id', true );
+	return give_get_donation_meta( $payment_id, '_give_payment_donor_id', true );
 }
 
 /**
@@ -1022,7 +1022,7 @@ function give_get_payment_donor_id( $payment_id ) {
  * @return string
  */
 function give_get_donation_donor_email( $payment_id ) {
-	return give_get_meta( $payment_id, '_give_payment_donor_email', true );
+	return give_get_donation_meta( $payment_id, '_give_payment_donor_email', true );
 }
 
 /**
@@ -1035,7 +1035,7 @@ function give_get_donation_donor_email( $payment_id ) {
  * @return string $ip User IP.
  */
 function give_get_payment_user_ip( $payment_id ) {
-	return give_get_meta( $payment_id, '_give_payment_donor_ip', true );
+	return give_get_donation_meta( $payment_id, '_give_payment_donor_ip', true );
 }
 
 /**
@@ -1048,7 +1048,7 @@ function give_get_payment_user_ip( $payment_id ) {
  * @return string $date The date the payment was completed.
  */
 function give_get_payment_completed_date( $payment_id = 0 ) {
-	return give_get_meta( $payment_id, '_give_completed_date', true );
+	return give_get_donation_meta( $payment_id, '_give_completed_date', true );
 }
 
 /**
@@ -1061,7 +1061,7 @@ function give_get_payment_completed_date( $payment_id = 0 ) {
  * @return string $gateway Gateway.
  */
 function give_get_payment_gateway( $payment_id ) {
-	return give_get_meta( $payment_id, '_give_payment_gateway', true );
+	return give_get_donation_meta( $payment_id, '_give_payment_gateway', true );
 }
 
 /**
@@ -1092,7 +1092,7 @@ function give_has_payment_gateway( $donation_id, $gateway_id ) {
  * @return string $currency The currency code.
  */
 function give_get_payment_currency_code( $payment_id = 0 ) {
-	return give_get_meta( $payment_id, '_give_payment_currency', true );
+	return give_get_donation_meta( $payment_id, '_give_payment_currency', true );
 }
 
 /**
@@ -1120,7 +1120,7 @@ function give_get_payment_currency( $payment_id = 0 ) {
  * @return string $key Donation key.
  */
 function give_get_payment_key( $payment_id = 0 ) {
-	return give_get_meta( $payment_id, '_give_payment_purchase_key', true );
+	return give_get_donation_meta( $payment_id, '_give_payment_purchase_key', true );
 }
 
 /**
@@ -1271,7 +1271,7 @@ function give_get_payment_subtotal( $payment_id = 0 ) {
  * @return string The donation ID.
  */
 function give_get_payment_transaction_id( $payment_id = 0 ) {
-	$transaction_id = give_get_meta( $payment_id, '_give_payment_transaction_id', true );
+	$transaction_id = give_get_donation_meta( $payment_id, '_give_payment_transaction_id', true );
 
 	if ( empty( $transaction_id ) ) {
 		$gateway        = give_get_payment_gateway( $payment_id );
@@ -1508,8 +1508,8 @@ function give_get_donation_form_title( $donation_id, $args = array() ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	$form_id     = give_get_payment_form_id( $donation_id );
-	$price_id    = give_get_meta( $donation_id, '_give_payment_price_id', true );
-	$form_title  = give_get_meta( $donation_id, '_give_payment_form_title', true );
+	$price_id    = give_get_donation_meta( $donation_id, '_give_payment_price_id', true );
+	$form_title  = give_get_donation_meta( $donation_id, '_give_payment_form_title', true );
 	$only_level  = $args['only_level'];
 	$separator   = $args['separator'];
 	$level_label = '';
@@ -1536,11 +1536,11 @@ function give_get_donation_form_title( $donation_id, $args = array() ) {
 
 		if ( 'custom' === $price_id ) {
 
-			$custom_amount_text = give_get_meta( $form_id, '_give_custom_amount_text', true );
+			$custom_amount_text = give_get_form_meta( $form_id, '_give_custom_amount_text', true );
 			$level_label        = ! empty( $custom_amount_text ) ? $custom_amount_text : __( 'Custom Amount', 'give' );
 
 			// Show custom amount level only in backend otherwise hide it.
-			if ( 'set' === give_get_meta( $form_id, '_give_price_option', true ) && ! is_admin() ) {
+			if ( 'set' === give_get_form_meta( $form_id, '_give_price_option', true ) && ! is_admin() ) {
 				$level_label = '';
 			}
 		} elseif ( give_has_variable_prices( $form_id ) ) {
@@ -1583,7 +1583,7 @@ function give_get_price_id( $form_id, $price ) {
 
 	if ( give_has_variable_prices( $form_id ) ) {
 
-		$levels = give_get_meta( $form_id, '_give_donation_levels', true );
+		$levels = give_get_form_meta( $form_id, '_give_donation_levels', true );
 
 		foreach ( $levels as $level ) {
 
@@ -1740,7 +1740,7 @@ function give_get_payment_meta_price_id( $payment_meta ) {
  */
 function give_get_payment_total( $payment_id = 0 ) {
 	return round(
-		floatval( give_get_meta( $payment_id, '_give_payment_total', true ) ),
+		floatval( give_get_donation_meta( $payment_id, '_give_payment_total', true ) ),
 		give_get_price_decimals( $payment_id )
 	);
 }
@@ -1755,12 +1755,12 @@ function give_get_payment_total( $payment_id = 0 ) {
  * @return array
  */
 function give_get_donation_address( $donation_id ) {
-	$address['line1']   = give_get_meta( $donation_id, '_give_donor_billing_address1', true, '' );
-	$address['line2']   = give_get_meta( $donation_id, '_give_donor_billing_address2', true, '' );
-	$address['city']    = give_get_meta( $donation_id, '_give_donor_billing_city', true, '' );
-	$address['state']   = give_get_meta( $donation_id, '_give_donor_billing_state', true, '' );
-	$address['zip']     = give_get_meta( $donation_id, '_give_donor_billing_zip', true, '' );
-	$address['country'] = give_get_meta( $donation_id, '_give_donor_billing_country', true, '' );
+	$address['line1']   = give_get_donation_meta( $donation_id, '_give_donor_billing_address1', true, '' );
+	$address['line2']   = give_get_donation_meta( $donation_id, '_give_donor_billing_address2', true, '' );
+	$address['city']    = give_get_donation_meta( $donation_id, '_give_donor_billing_city', true, '' );
+	$address['state']   = give_get_donation_meta( $donation_id, '_give_donor_billing_state', true, '' );
+	$address['zip']     = give_get_donation_meta( $donation_id, '_give_donor_billing_zip', true, '' );
+	$address['country'] = give_get_donation_meta( $donation_id, '_give_donor_billing_country', true, '' );
 
 	return $address;
 }
@@ -1819,7 +1819,7 @@ function give_is_donation_completed( $donation_id ) {
 function give_is_anonymous_donation( $donation_id ) {
 	$value = false;
 
-	if( (int) give_get_meta( $donation_id, '_give_anonymous_donation', true ) ){
+	if( (int) give_get_donation_meta( $donation_id, '_give_anonymous_donation', true ) ){
 		$value = true;
 	}
 
