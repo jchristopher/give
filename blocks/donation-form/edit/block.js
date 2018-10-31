@@ -36,7 +36,7 @@ const GiveForm = ( props ) => {
 	if ( ! id ) {
 		if ( null === forms ) {
 			blockUI = <GiveBlankSlate title={ __( 'Loading...' ) } isLoader={ true } />;
-		} else if ( isEmpty( forms ) || || form.hasOwnProperty('error') ) {
+		} else if ( isEmpty( forms ) || forms.hasOwnProperty('error') ) {
 			blockUI = <NoForms />;
 		} else {
 			blockUI = <SelectForm { ... { ...props } } />;
@@ -147,6 +147,7 @@ const store = registerStore( 'give/donation-form', {
  */
 export default withSelect( ( select, props ) => {
 	const { showTitle, showGoal, showContent, displayStyle, continueButtonTitle, id } = props.attributes;
+
 	let parameters = {
 		show_title: showTitle,
 		show_goal: showGoal,
