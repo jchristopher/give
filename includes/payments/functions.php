@@ -841,18 +841,25 @@ function give_decrease_total_earnings( $amount = 0 ) {
 }
 
 /**
- * Get Payment Meta for a specific Payment
+ * Get Donation Meta for a specific Donation
  *
- * @param int    $payment_id Payment ID.
- * @param string $meta_key   The meta key to pull.
- * @param bool   $single     Pull single meta entry or as an object.
+ * @param int    $donation_id Donation ID.
+ * @param string $meta_key    The meta key to pull.
+ * @param bool   $single      Pull single meta entry or as an object.
+ * @param mixed  $default
  *
- * @since 1.0
+ * @since 2.3.1
  *
  * @return mixed $meta Payment Meta.
  */
-function give_get_payment_meta( $payment_id = 0, $meta_key = '_give_payment_meta', $single = true ) {
-	return give_get_meta( $payment_id, $meta_key, $single );
+function give_get_donation_meta( $donation_id = 0, $meta_key = '_give_payment_meta', $single = true, $default = '' ) {
+	return give_get_meta( array(
+		'id'       => $donation_id,
+		'meta_key' => $meta_key,
+		'single'   => $single,
+		'default'  => $default,
+		'type'     => 'donation',
+	) );
 }
 
 /**

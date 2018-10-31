@@ -1518,3 +1518,26 @@ function give_handle_form_meta_on_delete( $id ) {
 }
 
 add_action( 'before_delete_post', 'give_handle_form_meta_on_delete', 10, 1 );
+
+
+/**
+ * Get Form Meta for a specific Form
+ *
+ * @param int    $form_id  Form ID.
+ * @param string $meta_key The meta key to pull.
+ * @param bool   $single   Pull single meta entry or as an object.
+ * @param mixed  $default
+ *
+ * @since 2.3.1
+ *
+ * @return mixed $meta Payment Meta.
+ */
+function give_get_form_meta( $form_id = 0, $meta_key = '', $single = true, $default = '' ) {
+	return give_get_meta( array(
+		'id'       => $form_id,
+		'meta_key' => $meta_key,
+		'single'   => $single,
+		'default'  => $default,
+		'type'     => 'form',
+	) );
+}
