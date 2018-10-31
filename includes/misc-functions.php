@@ -1059,23 +1059,60 @@ function give_is_add_new_form_page() {
  *
  * @since 1.8.8
  *
- * @param int    $id
- * @param string $meta_key
- * @param bool   $single
- * @param bool   $default
+ * @param array $args
  *
  * @return mixed
  */
-function give_get_meta( $id, $meta_key = '', $single = false, $default = false ) {
+function give_get_meta( $args = array() ) {
+	// Backward compatibility.
+	if ( ! is_array( $args ) ) {
+		$func_args = func_get_args();
+
+		$args = array(
+			'id'       => $func_args[0],
+			'meta_key' => isset( $func_args[1] ) ? $func_args[1] : '',
+			'single'   => isset( $func_args[2] ) ? $func_args[2] : false,
+			'default'  => isset( $func_args[3] ) ? $func_args[3] : false,
+		);
+	}
+
+	$args = wp_parse_args(
+		$args,
+		array(
+			'id'       => 0,
+			'meta_key' => '',
+			'single'   => false,
+			'default'  => false,
+			'type'     => '',
+		)
+	);
+
+	$post_type  = ! empty( $args['type'] )
+		? $args['type']
+		: get_post_type( $args['id'] );
+	$meta_value = false;
+
+	switch ( $post_type ) {
+		case 'donation':
+		case 'give_payment':
+			$meta_value = Give()->payment_meta->get_meta( $args['id'], $args['meta_key'], $args['single'] );
+			break;
+
+		case 'form':
+		case 'give_forms':
+			$meta_value = Give()->form_meta->get_meta( $args['id'], $args['meta_key'], $args['single'] );
+			break;
+	}
+
 	/**
 	 * Filter the meta value
 	 *
 	 * @since 1.8.8
 	 */
-	$meta_value = apply_filters( 'give_get_meta', get_post_meta( $id, $meta_key, $single ), $id, $meta_key, $default );
+	$meta_value = apply_filters( 'give_get_meta', $meta_value, $args['id'], $args['meta_key'], $args['default'] );
 
-	if ( ( empty( $meta_key ) || empty( $meta_value ) ) && $default ) {
-		$meta_value = $default;
+	if ( ( empty( $args['meta_key'] ) || empty( $args['meta_value'] ) ) && $args['default'] ) {
+		$meta_value = $args['default'];
 	}
 
 	return $meta_value;
@@ -1094,7 +1131,18 @@ function give_get_meta( $id, $meta_key = '', $single = false, $default = false )
  * @return mixed
  */
 function give_update_meta( $id, $meta_key, $meta_value, $prev_value = '' ) {
-	$status = update_post_meta( $id, $meta_key, $meta_value, $prev_value );
+	$post_type = get_post_type( $id );
+	$status    = false;
+
+	switch ( $post_type ) {
+		case 'give_payment':
+			$status = Give()->payment_meta->update_meta( $id, $meta_key, $prev_value );
+			break;
+
+		case 'give_forms':
+			$status = Give()->form_meta->update_meta( $id, $meta_key, $prev_value );
+			break;
+	}
 
 	/**
 	 * Filter the meta value update status
@@ -1116,7 +1164,18 @@ function give_update_meta( $id, $meta_key, $meta_value, $prev_value = '' ) {
  * @return mixed
  */
 function give_delete_meta( $id, $meta_key, $meta_value = '' ) {
-	$status = delete_post_meta( $id, $meta_key, $meta_value );
+	$post_type = get_post_type( $id );
+	$status    = false;
+
+	switch ( $post_type ) {
+		case 'give_payment':
+			$status = Give()->payment_meta->delete_meta( $id, $meta_key, $meta_value );
+			break;
+
+		case 'give_forms':
+			$status = Give()->form_meta->delete_meta( $id, $meta_key, $meta_value );
+			break;
+	}
 
 	/**
 	 * Filter the meta value delete status
