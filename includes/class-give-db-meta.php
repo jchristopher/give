@@ -80,38 +80,6 @@ class Give_DB_Meta extends Give_DB {
 		if ( empty( $this->supports ) || ! $this->is_custom_meta_table_active() ) {
 			return;
 		}
-
-		if ( in_array( 'add_post_metadata', $this->supports ) ) {
-			add_filter( 'add_post_metadata', array( $this, '__add_meta' ), 0, 5 );
-		}
-
-		if ( in_array( 'get_post_metadata', $this->supports ) ) {
-			add_filter( 'get_post_metadata', array( $this, '__get_meta' ), 10, 4 );
-		}
-
-		if ( in_array( 'update_post_metadata', $this->supports ) ) {
-			add_filter( 'update_post_metadata', array( $this, '__update_meta' ), 0, 5 );
-		}
-
-		if ( in_array( 'delete_post_metadata', $this->supports ) ) {
-			add_filter( 'delete_post_metadata', array( $this, '__delete_meta' ), 0, 5 );
-		}
-
-		if ( in_array( 'posts_where', $this->supports ) ) {
-			add_filter( 'posts_where', array( $this, '__rename_meta_table_name_in_query' ), 99999, 2 );
-		}
-
-		if ( in_array( 'posts_join', $this->supports ) ) {
-			add_filter( 'posts_join', array( $this, '__rename_meta_table_name_in_query' ), 99999, 2 );
-		}
-
-		if ( in_array( 'posts_groupby', $this->supports ) ) {
-			add_filter( 'posts_groupby', array( $this, '__rename_meta_table_name_in_query' ), 99999, 2 );
-		}
-
-		if ( in_array( 'posts_orderby', $this->supports ) ) {
-			add_filter( 'posts_orderby', array( $this, '__rename_meta_table_name_in_query' ), 99999, 2 );
-		}
 	}
 
 
@@ -130,11 +98,6 @@ class Give_DB_Meta extends Give_DB {
 	 */
 	public function get_meta( $id = 0, $meta_key = '', $single = false ) {
 		$id = $this->sanitize_id( $id );
-
-		// Bailout.
-		if ( ! $this->is_valid_post_type( $id ) ) {
-			return $this->check;
-		}
 
 		if ( $this->raw_result ) {
 			if ( ! ( $value = get_metadata( $this->meta_type, $id, $meta_key, false ) ) ) {
@@ -167,13 +130,8 @@ class Give_DB_Meta extends Give_DB {
 	 *
 	 * @return  int|bool                  False for failure. True for success.
 	 */
-	public function add_meta( $id = 0, $meta_key = '', $meta_value, $unique = false ) {
+	public function add_meta( $id = 0, $meta_key = '', $meta_value = '', $unique = false ) {
 		$id = $this->sanitize_id( $id );
-
-		// Bailout.
-		if ( ! $this->is_valid_post_type( $id ) ) {
-			return $this->check;
-		}
 
 		$meta_id = add_metadata( $this->meta_type, $id, $meta_key, $meta_value, $unique );
 
@@ -204,13 +162,8 @@ class Give_DB_Meta extends Give_DB {
 	 *
 	 * @return  int|bool                  False on failure, true if success.
 	 */
-	public function update_meta( $id = 0, $meta_key = '', $meta_value, $prev_value = '' ) {
+	public function update_meta( $id = 0, $meta_key = '', $meta_value = '', $prev_value = '' ) {
 		$id = $this->sanitize_id( $id );
-
-		// Bailout.
-		if ( ! $this->is_valid_post_type( $id ) ) {
-			return $this->check;
-		}
 
 		$meta_id = update_metadata( $this->meta_type, $id, $meta_key, $meta_value, $prev_value );
 
@@ -241,11 +194,6 @@ class Give_DB_Meta extends Give_DB {
 	public function delete_meta( $id = 0, $meta_key = '', $meta_value = '', $delete_all = '' ) {
 		$id = $this->sanitize_id( $id );
 
-		// Bailout.
-		if ( ! $this->is_valid_post_type( $id ) ) {
-			return $this->check;
-		}
-
 		$is_meta_deleted = delete_metadata( $this->meta_type, $id, $meta_key, $meta_value, $delete_all );
 
 		if ( $is_meta_deleted ) {
@@ -253,77 +201,6 @@ class Give_DB_Meta extends Give_DB {
 		}
 
 		return $is_meta_deleted;
-	}
-
-	/**
-	 * Rename query clauses of every query for new meta table
-	 *
-	 * @since  2.0
-	 * @access public
-	 *
-	 * @param string   $clause
-	 * @param WP_Query $wp_query
-	 *
-	 * @return string
-	 */
-	public function __rename_meta_table_name_in_query( $clause, $wp_query ) {
-		// Add new table to sql query.
-		if ( $this->is_post_type_query( $wp_query ) && ! empty( $wp_query->meta_query->queries ) ) {
-			$clause = $this->__rename_meta_table_name( $clause, current_filter() );
-		}
-
-		return $clause;
-	}
-
-
-	/**
-	 * Rename query clauses for new meta table
-	 *
-	 * @param $clause
-	 * @param $filter
-	 *
-	 * @return mixed
-	 */
-	public function __rename_meta_table_name( $clause, $filter ) {
-		global $wpdb;
-
-		$clause = str_replace( "{$wpdb->postmeta}.post_id", "{$this->table_name}.{$this->meta_type}_id", $clause );
-		$clause = str_replace( $wpdb->postmeta, $this->table_name, $clause );
-
-		switch ( $filter ) {
-			case 'posts_join':
-				$joins = array( 'INNER JOIN', 'LEFT JOIN' );
-
-				foreach ( $joins as $join ) {
-					if ( false !== strpos( $clause, $join ) ) {
-						$clause = explode( $join, $clause );
-
-						foreach ( $clause as $key => $clause_part ) {
-							if ( empty( $clause_part ) ) {
-								continue;
-							}
-
-							preg_match( '/' . $wpdb->prefix . 'give_' . $this->meta_type . 'meta AS (.*) ON/', $clause_part, $alias_table_name );
-
-							if ( isset( $alias_table_name[1] ) ) {
-								$clause[ $key ] = str_replace( "{$alias_table_name[1]}.post_id", "{$alias_table_name[1]}.{$this->meta_type}_id", $clause_part );
-							}
-						}
-
-						$clause = implode( "{$join} ", $clause );
-					}
-				}
-				break;
-
-			case 'posts_where':
-				$clause = str_replace( array( 'mt2.post_id', 'mt1.post_id' ), array(
-					"mt2.{$this->meta_type}_id",
-					"mt1.{$this->meta_type}_id"
-				), $clause );
-				break;
-		}
-
-		return $clause;
 	}
 
 
@@ -407,77 +284,6 @@ class Give_DB_Meta extends Give_DB {
 
 		if ( array_key_exists( $meta_type, $group ) ) {
 			Give_Cache::delete_group( $id, $group[ $meta_type ] );
-		}
-	}
-
-	/**
-	 * Add support for hidden functions.
-	 *
-	 * @since  2.0
-	 * @access public
-	 *
-	 * @param $name
-	 * @param $arguments
-	 *
-	 * @return mixed
-	 */
-	public function __call( $name, $arguments ) {
-		switch ( $name ) {
-			case '__add_meta':
-				$this->check = $arguments[0];
-				$id          = $arguments[1];
-				$meta_key    = $arguments[2];
-				$meta_value  = $arguments[3];
-				$unique      = $arguments[4];
-
-				// Bailout.
-				if ( ! $this->is_valid_post_type( $id ) ) {
-					return $this->check;
-				}
-
-				return $this->add_meta( $id, $meta_key, $meta_value, $unique );
-
-			case '__get_meta':
-				$this->check = $arguments[0];
-				$id          = $arguments[1];
-				$meta_key    = $arguments[2];
-				$single      = $arguments[3];
-
-				// Bailout.
-				if ( ! $this->is_valid_post_type( $id ) ) {
-					return $this->check;
-				}
-
-				$this->raw_result = true;
-
-				return $this->get_meta( $id, $meta_key, $single );
-
-			case '__update_meta':
-				$this->check = $arguments[0];
-				$id          = $arguments[1];
-				$meta_key    = $arguments[2];
-				$meta_value  = $arguments[3];
-
-				// Bailout.
-				if ( ! $this->is_valid_post_type( $id ) ) {
-					return $this->check;
-				}
-
-				return $this->update_meta( $id, $meta_key, $meta_value );
-
-			case '__delete_meta':
-				$this->check = $arguments[0];
-				$id          = $arguments[1];
-				$meta_key    = $arguments[2];
-				$meta_value  = $arguments[3];
-				$delete_all  = $arguments[3];
-
-				// Bailout.
-				if ( ! $this->is_valid_post_type( $id ) ) {
-					return $this->check;
-				}
-
-				return $this->delete_meta( $id, $meta_key, $meta_value, $delete_all );
 		}
 	}
 
