@@ -533,7 +533,13 @@ class Give_Scripts {
 		);
 
 		// Enqueue public styles
-		wp_enqueue_style( 'give-styles' );
+		wp_enqueue_style(
+			'give-styles',
+			$this->get_frontend_stylesheet_uri(),
+			array(),
+			GIVE_VERSION,
+			'all'
+		);
 
 		// Enqueue the bundled block css file
 		wp_enqueue_style(
