@@ -1021,3 +1021,26 @@ function give_get_donor_latest_comment( $donor_id, $form_id = 0 ) {
 
 	return $comment;
 }
+
+
+/**
+ * Get Payment Meta for a specific Payment
+ *
+ * @param int    $payment_id Payment ID.
+ * @param string $meta_key   The meta key to pull.
+ * @param bool   $single     Pull single meta entry or as an object.
+ *
+ * @since      1.0
+ * @deprecated 2.3.1
+ *
+ * @return mixed $meta Payment Meta.
+ */
+function give_get_payment_meta( $payment_id = 0, $meta_key = '_give_payment_meta', $single = true ) {
+	_give_deprecated_function(
+		__FUNCTION__,
+		'2.3.1',
+		'give_get_donation_meta'
+	);
+
+	return give_get_donation_meta( $payment_id, $meta_key, $single );
+}
