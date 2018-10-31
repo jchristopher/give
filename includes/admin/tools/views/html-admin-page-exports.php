@@ -105,7 +105,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 								echo Give()->html->date_field( array(
 									'id'           => 'give_donor_export_start_date',
 									'name'         => 'donor_export_start_date',
-									'placeholder'  => esc_attr__( 'Start date', 'give' ),
+									'placeholder'  => esc_attr__( 'Start Date', 'give' ),
 									'autocomplete' => 'off',
 								) );
 
@@ -113,7 +113,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 								echo Give()->html->date_field( array(
 									'id'           => 'give_donor_export_end_date',
 									'name'         => 'donor_export_end_date',
-									'placeholder'  => esc_attr__( 'End date', 'give' ),
+									'placeholder'  => esc_attr__( 'End Date', 'give' ),
 									'autocomplete' => 'off',
 								) );
 
@@ -167,7 +167,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<td>
 							<form method="post">
 								<?php
-								$export_excludes = apply_filters( 'settings_export_excludes', array() );
+								$export_excludes = apply_filters( 'give_settings_export_excludes', array() );
 								if ( ! empty( $export_excludes ) ) {
 									?>
 									<i class="settings-excludes-title"><?php esc_html_e( 'Checked options from the list will not be exported.', 'give' ); ?></i>
