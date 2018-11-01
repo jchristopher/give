@@ -2,7 +2,6 @@
  * Wordpress dependencies
  */
 const { __ } = wp.i18n;
-const { InspectorControls } = wp.editor;
 const { PanelBody, SelectControl, ToggleControl, TextControl } = wp.components;
 const { Component } = wp.element;
 
@@ -46,6 +45,8 @@ class Inspector extends Component {
 			showContent,
 			contentDisplay,
 		} = this.props.attributes;
+
+		const { InspectorControls } = wp.editor;
 
 		return (
 			<InspectorControls key="inspector">

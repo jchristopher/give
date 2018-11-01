@@ -2,7 +2,6 @@
  * WordPress dependencies
  */
 const { __ } = wp.i18n;
-const { InspectorControls } = wp.editor;
 const { PanelBody, SelectControl, ToggleControl } = wp.components;
 
 /**
@@ -21,6 +20,7 @@ const Inspector = ( { attributes, setAttributes } ) => {
 			[ name ]: value,
 		} );
 	};
+	const { InspectorControls } = wp.editor;
 
 	return (
 		<InspectorControls key="inspector">
