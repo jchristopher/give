@@ -11,6 +11,7 @@ const { __ } = wp.i18n;
 const {
 	withSelect,
 	registerStore,
+	dispatch
 } = wp.data;
 
 /**
@@ -27,14 +28,13 @@ import DonorWallPreview from './components/preview';
 const GiveDonorWall = ( props, walls ) => {
 
 	const { donorWallData } = props;
-	const { isLoading, data } = donorWallData;
 
 	// Render block UI
 	let blockUI;
 
-	if ( isUndefined( data ) ) {
+	if ( null === donorWallData ) {
 		blockUI = <GiveBlankSlate title={ __( 'Loading...' ) } isLoader={ true } />;
-	} else if ( isEmpty( data ) ) {
+	} else if ( isEmpty( donorWallData ) ) {
 		blockUI = <p>{ __( 'No donors available...' ) }</p>;
 	} else {
 		blockUI = <DonorWallPreview
@@ -62,7 +62,7 @@ const actions = {
 };
 
 const store = registerStore( 'give/donor-wall', {
-	reducer( state = { donorWallData: {} }, action ) {
+	reducer( state = { donorWallData: null }, action ) {
 
 		switch ( action.type ) {
 			case 'SET_DONOR_WALL':
@@ -87,12 +87,9 @@ const store = registerStore( 'give/donor-wall', {
 	},
 
 	resolvers: {
-		* getDonorWall( state, parameters ) {
-			const donorWallData = wp.apiFetch( { path: `/give-api/v2/donor-wall/?${ parameters }` } )
-				.then( donorWallData => {
-					return actions.setDonorWall( donorWallData );
-				} )
-			yield donorWallData;
+		async getDonorWall( parameters ) {
+			const donorWallData = await wp.apiRequest( { path: `/give-api/v2/donor-wall/?${ parameters }` } );
+			dispatch('give/donor-wall').getDonorWall( donorWallData );
 		},
 	},
 
@@ -116,8 +113,6 @@ export default withSelect( ( select, props ) => {
 	) );
 
 	return {
-		donorWallData: {
-			data: select( 'give/donor-wall' ).getDonorWall( parameters )
-		}
+		donorWallData: select( 'give/donor-wall' ).getDonorWall( parameters )
 	}
 })( GiveDonorWall )

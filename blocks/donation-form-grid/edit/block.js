@@ -11,6 +11,7 @@ const { __ } = wp.i18n;
 const {
 	withSelect,
 	registerStore,
+	dispatch
 } = wp.data;
 
 /**
@@ -26,18 +27,17 @@ import FormGridPreview from './components/preview';
 
 const GiveDonationFormGrid = ( props ) => {
 	const { formGridData } = props;
-	const { data } = formGridData;
 
 	// Render block UI
 	let blockUI;
 
-	if ( isUndefined( data ) ) {
+	if ( null === formGridData ) {
 		blockUI = <GiveBlankSlate title={ __( 'Loading...' ) } isLoader={ true } />;
-	} else if ( isEmpty( data ) ) {
+	} else if ( isEmpty( formGridData ) ) {
 		blockUI = <NoForms />;
 	} else {
 		blockUI = <FormGridPreview
-			html={ data }
+			html={ formGridData }
 			{ ... { ...props } } />;
 	}
 
@@ -61,7 +61,7 @@ const actions = {
 };
 
 const store = registerStore( 'give/donation-form-grid', {
-	reducer( state = { formGridData: {} }, action ) {
+	reducer( state = { formGridData: null }, action ) {
 
 		switch ( action.type ) {
 			case 'SET_FORM_GRID':
@@ -86,12 +86,9 @@ const store = registerStore( 'give/donation-form-grid', {
 	},
 
 	resolvers: {
-		* getFormGrid( state, parameters ) {
-			const formGridData = wp.apiFetch( { path: `/give-api/v2/form-grid/?${ parameters }` } )
-				.then( formGridData => {
-					return actions.setFormGrid( formGridData );
-				} )
-			yield formGridData;
+		async getFormGrid( parameters ) {
+			const formGridData = await wp.apiRequest( { path: `/give-api/v2/form-grid/?${ parameters }` } );
+			dispatch( 'give/donation-form-grid' ).setFormGrid( formGridData );
 		},
 	},
 
@@ -114,8 +111,6 @@ export default withSelect( ( select, props ) => {
 	) );
 
 	return {
-		formGridData: {
-			data: select( 'give/donation-form-grid' ).getFormGrid( parameters )
-		}
+		formGridData: select( 'give/donation-form-grid' ).getFormGrid( parameters )
 	}
 })( GiveDonationFormGrid )
