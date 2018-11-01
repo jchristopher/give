@@ -25,7 +25,7 @@ import DonorWallPreview from './components/preview';
  * Render Block UI For Editor
  */
 
-const GiveDonorWall = ( props, walls ) => {
+const GiveDonorWall = ( props ) => {
 
 	const { donorWallData } = props;
 
@@ -38,7 +38,7 @@ const GiveDonorWall = ( props, walls ) => {
 		blockUI = <p>{ __( 'No donors available...' ) }</p>;
 	} else {
 		blockUI = <DonorWallPreview
-			html={ data }
+			html={ donorWallData }
 			{ ... { ...props } } />;
 	}
 
@@ -89,7 +89,7 @@ const store = registerStore( 'give/donor-wall', {
 	resolvers: {
 		async getDonorWall( parameters ) {
 			const donorWallData = await wp.apiRequest( { path: `/give-api/v2/donor-wall/?${ parameters }` } );
-			dispatch('give/donor-wall').getDonorWall( donorWallData );
+			dispatch('give/donor-wall').setDonorWall( donorWallData );
 		},
 	},
 
