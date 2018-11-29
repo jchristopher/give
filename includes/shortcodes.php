@@ -590,15 +590,21 @@ add_action( 'give_edit_user_profile', 'give_process_profile_editor_updates' );
  * @return string
  */
 function give_totals_shortcode( $atts ) {
-	$total = get_option( 'give_earnings_total', false );
-
-	$message = apply_filters( 'give_totals_message', __( 'Hey! We\'ve raised {total} of the {total_goal} we are trying to raise for this campaign!', 'give' ) );
+	/**
+	 * Filter the message template
+	 *
+	 * @since 2.1
+	 */
+	$message = apply_filters(
+		'give_totals_message',
+		__( 'Hey! We\'ve raised {total} of the {total_goal} we are trying to raise for this campaign!', 'give' )
+	);
 
 	$atts = shortcode_atts( array(
 		'total_goal'   => 0, // integer.
-		'ids'          => 0, // integer|array.
-		'cats'         => 0, // integer|array.
-		'tags'         => 0, // integer|array.
+		'ids'          => 0, // integer|string.
+		'cats'         => 0, // integer|string.
+		'tags'         => 0, // integer|string.
 		'message'      => $message,
 		'link'         => '', // URL.
 		'link_text'    => __( 'Donate Now', 'give' ), // string,
@@ -617,80 +623,76 @@ function give_totals_shortcode( $atts ) {
 	 */
 	do_action( 'give_totals_goal_shortcode_before_render', $atts );
 
-	// Build query based on cat, tag and Form ids.
-	if ( ! empty( $atts['cats'] ) || ! empty( $atts['tags'] ) || ! empty( $atts['ids'] ) ) {
 
-		$form_ids = array();
-		if ( ! empty( $atts['ids'] ) ) {
-			$form_ids = array_filter( array_map( 'trim', explode( ',', $atts['ids'] ) ) );
-		}
+	$form_ids = array();
 
-		/**
-		 * Filter to modify WP Query for Total Goal.
-		 *
-		 * @since 2.1.4
-		 *
-		 * @param array WP query argument for Total Goal.
-		 */
-		$form_args = array(
-			'post_type'      => 'give_forms',
-			'post_status'    => 'publish',
-			'post__in'       => $form_ids,
-			'posts_per_page' => - 1,
-			'fields'         => 'ids',
-			'tax_query'      => array(
-				'relation' => 'AND',
-			),
+	if ( ! empty( $atts['ids'] ) ) {
+		$form_ids = array_filter( array_map( 'trim', explode( ',', $atts['ids'] ) ) );
+	}
+
+	/**
+	 * Filter to modify WP Query for Total Goal.
+	 *
+	 * @since 2.1.4
+	 *
+	 * @param array WP query argument for Total Goal.
+	 */
+	$form_args = array(
+		'post_type'      => 'give_forms',
+		'post_status'    => 'publish',
+		'post__in'       => $form_ids,
+		'posts_per_page' => - 1,
+		'fields'         => 'ids',
+		'tax_query'      => array(
+			'relation' => 'AND',
+		),
+	);
+
+	if ( ! empty( $atts['cats'] ) ) {
+		$form_args['tax_query'][] = array(
+			'taxonomy' => 'give_forms_category',
+			'terms'    => array_filter( array_map( 'trim', explode( ',', $atts['cats'] ) ) ),
 		);
+	}
 
-		if ( ! empty( $atts['cats'] ) ) {
-			$cats                     = array_filter( array_map( 'trim', explode( ',', $atts['cats'] ) ) );
-			$form_args['tax_query'][] = array(
-				'taxonomy' => 'give_forms_category',
-				'terms'    => $cats,
-			);
+	if ( ! empty( $atts['tags'] ) ) {
+		$form_args['tax_query'][] = array(
+			'taxonomy' => 'give_forms_tag',
+			'terms'    => array_filter( array_map( 'trim', explode( ',', $atts['tags'] ) ) ),
+		);
+	}
+
+	/**
+	 * Filter to modify WP Query for Total Goal.
+	 *
+	 * @since 2.1.4
+	 *
+	 * @param array $form_args WP query argument for Total Goal.
+	 *
+	 * @return array $form_args WP query argument for Total Goal.
+	 */
+	$form_args = (array) apply_filters( 'give_totals_goal_shortcode_query_args', $form_args );
+
+	$forms = new WP_Query( $form_args );
+
+	if ( isset( $forms->posts ) ) {
+		$total = 0;
+		foreach ( $forms->posts as $post ) {
+			$form_earning = give_get_meta( $post, '_give_form_earnings', true );
+			$form_earning = ! empty( $form_earning ) ? $form_earning : 0;
+
+			/**
+			 * Update Form earnings.
+			 *
+			 * @since 2.1
+			 *
+			 * @param int    $post         Form ID.
+			 * @param string $form_earning Total earning of Form.
+			 * @param array  $atts         Shortcode attributes.
+			 */
+			$total += apply_filters( 'give_totals_form_earning', $form_earning, $post, $atts );
 		}
-
-		if ( ! empty( $atts['tags'] ) ) {
-			$tags                     = array_filter( array_map( 'trim', explode( ',', $atts['tags'] ) ) );
-			$form_args['tax_query'][] = array(
-				'taxonomy' => 'give_forms_tag',
-				'terms'    => $tags,
-			);
-		}
-
-		/**
-		 * Filter to modify WP Query for Total Goal.
-		 *
-		 * @since 2.1.4
-		 *
-		 * @param array $form_args WP query argument for Total Goal.
-		 *
-		 * @return array $form_args WP query argument for Total Goal.
-		 */
-		$form_args = (array) apply_filters( 'give_totals_goal_shortcode_query_args', $form_args );
-
-		$forms = new WP_Query( $form_args );
-
-		if ( isset( $forms->posts ) ) {
-			$total = 0;
-			foreach ( $forms->posts as $post ) {
-				$form_earning = give_get_meta( $post, '_give_form_earnings', true );
-				$form_earning = ! empty( $form_earning ) ? $form_earning : 0;
-
-				/**
-				 * Update Form earnings.
-				 *
-				 * @since 2.1
-				 *
-				 * @param int    $post         Form ID.
-				 * @param string $form_earning Total earning of Form.
-				 * @param array $atts shortcode attributes.
-				 */
-				$total += apply_filters( 'give_totals_form_earning', $form_earning, $post, $atts );
-			}
-		}
-	} // End if().
+	}
 
 	// Append link with text.
 	$donate_link = '';
