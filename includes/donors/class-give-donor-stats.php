@@ -46,7 +46,7 @@ class Give_Donor_Stats {
 	}
 
 	/**
-	 *  Get total donated amount
+	 * Get total donated amount
 	 *
 	 *
 	 * @since  2.2.0
